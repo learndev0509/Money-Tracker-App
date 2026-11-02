@@ -6,10 +6,12 @@ import pkg from './package.json' with { type: 'json' };
 
 /** Files under public/ that the service worker should precache, with a hash of their contents. */
 function publicFiles(dir = 'public', base = 'public'): string[] {
-  return readdirSync(dir).flatMap(name => {
-    const p = join(dir, name);
-    return statSync(p).isDirectory() ? publicFiles(p, base) : [relative(base, p).replace(/\\/g, '/')];
-  }).filter(f => !f.endsWith('.txt'));
+  return readdirSync(dir)
+    .flatMap(name => {
+      const p = join(dir, name);
+      return statSync(p).isDirectory() ? publicFiles(p, base) : [relative(base, p).replace(/\\/g, '/')];
+    })
+    .filter(f => !f.endsWith('.txt'));
 }
 
 /**
@@ -26,10 +28,17 @@ function serviceWorker(): Plugin {
       const pub = publicFiles();
       const assets = ['./', './index.html', ...built.map(f => './' + f), ...pub.map(f => './' + f)];
       const h = createHash('sha1').update(pkg.version);
-      for (const f of built) { const c = bundle[f]; h.update(f).update('code' in c ? c.code : (c.source as Uint8Array | string)); }
+      for (const f of built) {
+        const c = bundle[f];
+        h.update(f).update('code' in c ? c.code : (c.source as Uint8Array | string));
+      }
       for (const f of pub) h.update(f).update(readFileSync(join('public', f)));
       const cache = 'money-tracker-' + pkg.version + '-' + h.digest('hex').slice(0, 8);
-      const source = readFileSync('src/sw.js', 'utf8').split('__CACHE__').join(cache).split('__ASSETS__').join(JSON.stringify(assets));
+      const source = readFileSync('src/sw.js', 'utf8')
+        .split('__CACHE__')
+        .join(cache)
+        .split('__ASSETS__')
+        .join(JSON.stringify(assets));
       this.emitFile({ type: 'asset', fileName: 'sw.js', source });
     },
   };

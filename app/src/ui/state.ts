@@ -23,7 +23,10 @@ export interface Draft {
   vehicleId?: string;
 }
 /** The minimum the shared pay block needs from any draft or form. */
-export interface PayState { method: Method; accountId: string }
+export interface PayState {
+  method: Method;
+  accountId: string;
+}
 
 export const ui = {
   view: 'dashboard' as View,
@@ -50,15 +53,53 @@ export const ui = {
   unlocking: false,
 };
 
-export const HSORT = { new: 'Newest first', old: 'Oldest first', high: 'Amount: high to low', low: 'Amount: low to high' };
+export const HSORT = {
+  new: 'Newest first',
+  old: 'Oldest first',
+  high: 'Amount: high to low',
+  low: 'Amount: low to high',
+};
 export type HistSort = keyof typeof HSORT;
 export const isHistSort = (x: unknown): x is HistSort => typeof x === 'string' && x in HSORT;
 export type CalcTarget = 'form' | 'fuel' | 'sheet';
 export const isCalcTarget = (x: unknown): x is CalcTarget => x === 'form' || x === 'fuel' || x === 'sheet';
 export const hf = { method: '' as '' | Method, cat: '', sort: 'new' as HistSort };
-export const histSorter = (): ((a: Tx, b: Tx) => number) => hf.sort === 'old' ? (a, b) => sortTx(b, a) : hf.sort === 'high' ? (a, b) => b.amount - a.amount || sortTx(a, b) : hf.sort === 'low' ? (a, b) => a.amount - b.amount || sortTx(a, b) : sortTx;
+export const histSorter = (): ((a: Tx, b: Tx) => number) =>
+  hf.sort === 'old'
+    ? (a, b) => sortTx(b, a)
+    : hf.sort === 'high'
+      ? (a, b) => b.amount - a.amount || sortTx(a, b)
+      : hf.sort === 'low'
+        ? (a, b) => a.amount - b.amount || sortTx(a, b)
+        : sortTx;
 /** The Fuel card's draft. `method` exists only so the shared pay block can treat it like any other draft. */
 export const fuel = { vehicleId: '', accountId: '', amount: '', method: 'card' as Method };
-export const form = { amount: '', category: '', method: 'cash' as Method, accountId: 'cash', lastBank: '', lastCard: '', lastOnline: '' as '' | Method, note: '', backdate: false, date: '', time: '' };
-export const canDownload = (() => { try { return window.self === window.top; } catch (e) { return false; } })();
-export const canShareFiles = () => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 'x.json', { type: 'application/json' })] })); } catch (e) { return false; } };
+export const form = {
+  amount: '',
+  category: '',
+  method: 'cash' as Method,
+  accountId: 'cash',
+  lastBank: '',
+  lastCard: '',
+  lastOnline: '' as '' | Method,
+  note: '',
+  backdate: false,
+  date: '',
+  time: '',
+};
+export const canDownload = (() => {
+  try {
+    return window.self === window.top;
+  } catch (e) {
+    return false;
+  }
+})();
+export const canShareFiles = () => {
+  try {
+    return !!(
+      navigator.canShare && navigator.canShare({ files: [new File(['x'], 'x.json', { type: 'application/json' })] })
+    );
+  } catch (e) {
+    return false;
+  }
+};

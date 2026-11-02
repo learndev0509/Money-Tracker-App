@@ -4,8 +4,16 @@ import { App } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 let app: App;
-test.beforeAll(async ({ browser }) => { app = await App.open(browser, 'ui'); await app.goto(); await app.finishWelcome('Shreya'); });
-test.afterAll(async () => { await app?.close(); });
+
+test.beforeAll(async ({ browser }) => {
+  app = await App.open(browser, 'ui');
+  await app.goto();
+  await app.finishWelcome('Shreya');
+});
+
+test.afterAll(async () => {
+  await app?.close();
+});
 
 const page = () => app.page;
 const saveBtn = () => app.page.locator('#save-tx');
@@ -14,13 +22,23 @@ test('an empty month shows the receipt illustration and the tab indicator sits b
   await expect(page().locator('.card.empty .art .coin').first()).toBeAttached();
   await expect(page().locator('.card.empty')).toContainText('₹0');
   await expect(page().locator('.tab-ind.live')).toHaveCount(1);
-  expect(await page().evaluate(() => { const a = document.querySelector('.tab-ind')!.getBoundingClientRect(), b = document.querySelector('nav .tab.on .ic')!.getBoundingClientRect(); return Math.abs(a.left - b.left) < 2 && Math.abs(a.top - b.top) < 2; })).toBe(true);
+  expect(
+    await page().evaluate(() => {
+      const a = document.querySelector('.tab-ind')!.getBoundingClientRect(),
+        b = document.querySelector('nav .tab.on .ic')!.getBoundingClientRect();
+      return Math.abs(a.left - b.left) < 2 && Math.abs(a.top - b.top) < 2;
+    }),
+  ).toBe(true);
 });
 
 test('category chips carry glyphs tinted by category', async () => {
   await app.add();
   await expect(page().locator('#cat-chips .chip .ci svg')).toHaveCount(10);
-  expect(await page().$eval('#cat-chips .chip[data-cat="Food"] .ci', e => (e as HTMLElement).style.getPropertyValue('--cc'))).toBe('var(--c1)');
+  expect(
+    await page()
+      .locator('#cat-chips .chip[data-cat="Food"] .ci')
+      .evaluate(e => (e as HTMLElement).style.getPropertyValue('--cc')),
+  ).toBe('var(--c1)');
 });
 
 test('saving morphs the button into a check, slides the row into Just added, then returns', async () => {
@@ -60,7 +78,8 @@ test('appearance: dark applies at once and persists, forced light beats a dark p
   await app.reload();
   expect(await app.theme()).toBe('dark');
   await app.shot('01-dark-forced');
-  await app.tab('settings'); await app.click('#theme-seg [data-theme-pick="light"]');
+  await app.tab('settings');
+  await app.click('#theme-seg [data-theme-pick="light"]');
   await page().emulateMedia({ colorScheme: 'dark' });
   expect(await app.theme()).toBe('light');
   expect(await page().evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(242, 244, 241)');
@@ -71,7 +90,8 @@ test('appearance: dark applies at once and persists, forced light beats a dark p
 
 test('reduced motion skips the save morph and the row slide', async () => {
   await page().emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
-  await app.add(); await app.addExpense('50', 'Food', null);
+  await app.add();
+  await app.addExpense('50', 'Food', null);
   await app.expectToast(/Saved/);
   await expect(saveBtn()).not.toHaveClass(/\bdone\b/);
   await expect(page().locator('#recent .txrow.new')).toHaveCount(0);
@@ -79,12 +99,22 @@ test('reduced motion skips the save morph and the row slide', async () => {
 });
 
 test('the tab bar is Month · History · Settings and Add sits in every header', async () => {
-  expect(await page().$$eval('nav .tab', l => l.map(b => (b as HTMLElement).dataset.go).join(','))).toBe('dashboard,history,settings');
+  expect(
+    await page()
+      .locator('nav .tab')
+      .evaluateAll(l => l.map(b => (b as HTMLElement).dataset.go).join(',')),
+  ).toBe('dashboard,history,settings');
   await app.tab('dashboard');
   await expect(page().locator('.greet #add-btn')).toHaveCount(1);
-  expect(await page().$eval('.greet', e => [...e.children].map(c => c.id || c.className).join('|'))).toBe('grow|add-btn|avatar');
-  await app.tab('history'); await expect(page().locator('.topbar #add-btn')).toHaveCount(1);
-  await app.tab('settings'); await expect(page().locator('.topbar #add-btn')).toHaveCount(1);
+  expect(
+    await page()
+      .locator('.greet')
+      .evaluate(e => [...e.children].map(c => c.id || c.className).join('|')),
+  ).toBe('grow|add-btn|avatar');
+  await app.tab('history');
+  await expect(page().locator('.topbar #add-btn')).toHaveCount(1);
+  await app.tab('settings');
+  await expect(page().locator('.topbar #add-btn')).toHaveCount(1);
   await app.add();
   await expect(page().locator('h1')).toContainText('Add expense');
   await expect(page().locator('nav .tab.on')).toHaveCount(0);
@@ -109,12 +139,15 @@ test('the calculator shows a live result, collapses on equals and puts the resul
 test('a typed expression saves as its value, an unfinished one is refused', async () => {
   await app.addExpense('250+180-30', 'Food', null);
   await app.expectToast(/Saved ₹400/);
-  await app.fill('#f-amount', '10%+'); await app.click('#save-tx');
+  await app.fill('#f-amount', '10%+');
+  await app.click('#save-tx');
   await app.expectToast(/Enter an amount/);
 });
 
 test('the calculator works inside the edit sheet and returns to it', async () => {
-  await app.click('#recent .txrow'); await app.click('#sheet [data-detail^="edit|"]'); await app.click('#sheet [data-calc="sheet"]');
+  await app.click('#recent .txrow');
+  await app.click('#sheet [data-detail^="edit|"]');
+  await app.click('#sheet [data-calc="sheet"]');
   for (const k of ['C', '8', '0', '0']) await app.click(`#sheet [data-ck="${k}"]`);
   await app.click('#sheet [data-calc-use]');
   await expect(app.sheet.locator('[data-save-edit]')).toHaveCount(1);
@@ -123,9 +156,11 @@ test('the calculator works inside the edit sheet and returns to it', async () =>
 });
 
 test('the hero opens Trends with four charts; a mover opens the category sheet on top; Day by day opens Trends too', async () => {
-  await app.tab('dashboard'); await app.click('.hero.tap');
+  await app.tab('dashboard');
+  await app.click('.hero.tap');
   await expect(app.sheetHead).toContainText('Trends');
-  for (const s of ['Running total', 'Average by weekday', 'Last six months', 'What moved']) await expect(app.sheetBody).toContainText(s);
+  for (const s of ['Running total', 'Average by weekday', 'Last six months', 'What moved'])
+    await expect(app.sheetBody).toContainText(s);
   await expect(app.sheetBody.locator('.chart svg')).toHaveCount(4);
   await app.click('#sheet .prow[data-detail^="cat|"]');
   await expect(app.sheetHead).toContainText('Food');
@@ -154,14 +189,34 @@ test('Settings exports a well-formed PDF named by month, and the dashboard links
   expect(pdf).toMatch(/%%EOF$/);
   expect(pdf).toMatch(/\/Type \/Pages \/Kids \[.*\] \/Count \d+/);
   expect(pdf).toMatch(/Helvetica-Bold/);
-  expect(pdf).toMatch(/expense report/); expect(pdf).toMatch(/\(Balance\)/); expect(pdf).toMatch(/\(Final balance\)/);
+  expect(pdf).toMatch(/expense report/);
+  expect(pdf).toMatch(/\(Balance\)/);
+  expect(pdf).toMatch(/\(Final balance\)/);
   await app.tab('dashboard');
   await expect(page().locator('[data-pdf]').first()).toBeAttached();
 });
 
 test('no request leaves the page and all five Plex faces load from fonts/', async () => {
-  expect(await page().evaluate(() => performance.getEntriesByType('resource').every(r => !/^https?:/.test(r.name) || r.name.startsWith(location.origin)))).toBe(true);
-  expect(await page().evaluate(async () => { await document.fonts.ready; const l = [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family + ' ' + f.weight); return ['IBM Plex Sans 400', 'IBM Plex Sans 500', 'IBM Plex Sans 600', 'IBM Plex Mono 500', 'IBM Plex Mono 600'].every(x => l.includes(x)); })).toBe(true);
+  expect(
+    await page().evaluate(() =>
+      performance
+        .getEntriesByType('resource')
+        .every(r => !/^https?:/.test(r.name) || r.name.startsWith(location.origin)),
+    ),
+  ).toBe(true);
+  expect(
+    await page().evaluate(async () => {
+      await document.fonts.ready;
+      const l = [...document.fonts].filter(f => f.status === 'loaded').map(f => f.family + ' ' + f.weight);
+      return [
+        'IBM Plex Sans 400',
+        'IBM Plex Sans 500',
+        'IBM Plex Sans 600',
+        'IBM Plex Mono 500',
+        'IBM Plex Mono 600',
+      ].every(x => l.includes(x));
+    }),
+  ).toBe(true);
 });
 
 test('Privacy and Terms open from Settings; Save to Files is hidden where files cannot be shared', async () => {
@@ -170,21 +225,33 @@ test('Privacy and Terms open from Settings; Save to Files is hidden where files 
   await expect(page().locator('[data-detail="terms|app"]')).toHaveCount(1);
   await expect(page().locator('#export-share')).toHaveCount(0);
   await app.click('[data-detail="privacy|app"]');
-  for (const s of ['Nothing leaves your phone', 'no analytics', 'AES-256', 'version 1.8.0']) await expect(app.sheetBody).toContainText(s);
-  await app.click('#sheet button[data-close]'); await app.click('[data-detail="terms|app"]');
+  for (const s of ['Nothing leaves your phone', 'no analytics', 'AES-256', 'version 1.8.0'])
+    await expect(app.sheetBody).toContainText(s);
+  await app.click('#sheet button[data-close]');
+  await app.click('[data-detail="terms|app"]');
   await expect(app.sheetHead).toContainText('Terms');
   await expect(app.sheetBody).toContainText('as is');
   await app.click('#sheet button[data-close]');
 });
 
 test('Save backup to Files appears when the phone can share files and hands over the JSON backup', async () => {
-  await page().evaluate(() => { (navigator as any).canShare = () => true; (navigator as any).share = (d: any) => { (window as any).__shared = d; return Promise.resolve(); }; });
-  await app.tab('dashboard'); await app.tab('settings');
+  await page().evaluate(() => {
+    (navigator as any).canShare = () => true;
+    (navigator as any).share = (d: any) => {
+      (window as any).__shared = d;
+      return Promise.resolve();
+    };
+  });
+  await app.tab('dashboard');
+  await app.tab('settings');
   await expect(page().locator('#export-share')).toHaveCount(1);
   await expect(app.main).toContainText(/save a backup to Files|Last backup/);
   await app.click('#export-share');
   await app.expectToast(/Backup saved/);
-  const shared = await page().evaluate(() => { const s = (window as any).__shared; return s && { n: s.files[0].name, t: s.files[0].type, size: s.files[0].size }; });
+  const shared = await page().evaluate(() => {
+    const s = (window as any).__shared;
+    return s && { n: s.files[0].name, t: s.files[0].type, size: s.files[0].size };
+  });
   expect(shared.n).toMatch(/^money-tracker-backup-\d{4}-\d{2}-\d{2}\.json$/);
   expect(shared.t).toBe('application/json');
   expect(shared.size).toBeGreaterThan(100);
@@ -192,8 +259,11 @@ test('Save backup to Files appears when the phone can share files and hands over
 });
 
 test('Privacy opens above the welcome screen and closing returns to it', async () => {
-  await app.patch(d => { d.profile = { firstName: '', lastName: '' }; });
-  await app.reload(); await app.click('#welcome [data-detail="privacy|welcome"]');
+  await app.patch(d => {
+    d.profile = { firstName: '', lastName: '' };
+  });
+  await app.reload();
+  await app.click('#welcome [data-detail="privacy|welcome"]');
   await expect(app.sheet).toBeVisible();
   await expect(app.sheet).toHaveClass(/\bover\b/);
   await expect(app.sheetHead).toContainText('Privacy');
@@ -204,4 +274,3 @@ test('Privacy opens above the welcome screen and closing returns to it', async (
   await app.expectNoHorizontalScroll();
   app.expectNoErrors();
 });
-

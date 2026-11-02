@@ -10,6 +10,8 @@ single-file 1.8.0 installed can open this build and carry on. The user-facing re
 ```
 npm install                 once; then `npx playwright install chromium` for the browser suites
 npm run dev                 Vite dev server with hot reload (no service worker in dev)
+npm run format              Prettier over the whole folder (format:check only reports)
+npm run lint                ESLint: recommended JS/TS rules plus the Playwright rules for e2e/
 npm run typecheck           tsc --noEmit
 npm test                    Vitest unit tests (tests/unit)
 npm run build               production build into dist/ (deploy that folder)
@@ -17,7 +19,7 @@ npm run preview             serve dist/ on http://127.0.0.1:4173
 npm run e2e                 build, serve, and run the browser suites (Playwright Test, e2e/*.spec.ts)
 npm run e2e:report          open the HTML report of the last run (traces for any failure)
 npm run e2e:legacy          the eight original suites from ../tests through e2e/run.cjs
-npm run check               all of the above in order (e2e, not e2e:legacy)
+npm run check               format:check, lint, typecheck, test, build, e2e in that order
 ```
 
 `npm run e2e -- fuel ui` runs only the specs whose file name matches. `APP_URL=https://staging.example
@@ -96,6 +98,21 @@ bindings, so:
   a backup enter as `Raw` and leave `migrate()` as `Ledger`; drafts being edited are `Draft`; the
   shared pay block takes any `PayState`. Casts are kept to DOM event targets and the two places where
   a string from the page is checked against a union (`isView`, `isMethod`, `isHistSort`).
+
+## Formatting and lint
+
+Prettier (`.prettierrc.json`: 120 columns, single quotes, no parentheses around a lone arrow
+argument) formats everything except what `.prettierignore` lists: the golden files and fixtures,
+which are compared byte for byte, and `index.html`, `src/styles.css` and `public/`, which stay as in
+the single-file app. `npm run format` before a commit; `npm run check` only reports.
+
+ESLint (`eslint.config.js`) runs the recommended JavaScript and TypeScript rules with two
+adjustments that match how the app is written: an empty `catch` is allowed, because that is how it
+ignores an API the phone lacks, and a function argument beginning with `_` may go unused. `any` is
+allowed in the tests, which read raw ledgers; in `src/` the only one left is the `Raw` type that
+records carry until `migrate()` has run. The Playwright rules apply to `e2e/`, where the `App`
+helper's `expect*` methods count as assertions and the three deliberate fixed waits carry a
+disable comment saying why.
 
 ## Golden snapshots
 

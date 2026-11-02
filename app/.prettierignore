@@ -1,0 +1,18 @@
+# build and test output
+dist/
+node_modules/
+test-results/
+playwright-report/
+e2e/.generated/
+e2e/shots/
+e2e/visual/
+
+# compared byte for byte, or data as received
+tests/golden/
+tests/fixtures/
+package-lock.json
+
+# kept as in the single-file app
+index.html
+src/styles.css
+public/

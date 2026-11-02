@@ -14,18 +14,59 @@ import { bindWelcome, showWelcome } from './screens/welcome';
 installErrorLog();
 loadInitial();
 
-let h = ''; try { h = (location.hash || '').replace('#', ''); } catch (e) { /* no hash access */ }
-ui.view = isView(h) ? h : (S.meta.startView === 'add' ? 'add' : 'dashboard');
+let h = '';
+try {
+  h = (location.hash || '').replace('#', '');
+} catch (e) {
+  /* no hash access */
+}
+ui.view = isView(h) ? h : S.meta.startView === 'add' ? 'add' : 'dashboard';
 
 bindLock();
 bindWelcome();
 bindEvents();
-document.querySelectorAll<HTMLElement>('nav .tab').forEach(b => b.addEventListener('click', () => { const v = b.dataset.go; if (isView(v)) go(v); }));
-window.addEventListener('hashchange', () => { let x = ''; try { x = (location.hash || '').replace('#', ''); } catch (e) { /* ignore */ } if (isView(x) && x !== ui.view) { ui.view = x; render(true); } });
-try { navigator.storage.persist().catch(() => { /* not granted */ }); } catch (e) { /* unsupported */ }
-applyTheme(); window.addEventListener('resize', moveTabInd);
+document.querySelectorAll<HTMLElement>('nav .tab').forEach(b =>
+  b.addEventListener('click', () => {
+    const v = b.dataset.go;
+    if (isView(v)) go(v);
+  }),
+);
+window.addEventListener('hashchange', () => {
+  let x = '';
+  try {
+    x = (location.hash || '').replace('#', '');
+  } catch (e) {
+    /* ignore */
+  }
+  if (isView(x) && x !== ui.view) {
+    ui.view = x;
+    render(true);
+  }
+});
+try {
+  navigator.storage.persist().catch(() => {
+    /* not granted */
+  });
+} catch (e) {
+  /* unsupported */
+}
+applyTheme();
+window.addEventListener('resize', moveTabInd);
 setInterval(updateClock, 15000);
 if (vault.lockedBlob) lock();
-else { applyRecurring(); render(true); if (!S.profile.firstName) showWelcome(); }
+else {
+  applyRecurring();
+  render(true);
+  if (!S.profile.firstName) showWelcome();
+}
 
-if (import.meta.env.PROD) { try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('./sw.js').catch(() => { /* offline support is optional */ }); } catch (e) { /* ignore */ } }
+if (import.meta.env.PROD) {
+  try {
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol))
+      navigator.serviceWorker.register('./sw.js').catch(() => {
+        /* offline support is optional */
+      });
+  } catch (e) {
+    /* ignore */
+  }
+}

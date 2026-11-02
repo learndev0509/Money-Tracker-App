@@ -9,7 +9,11 @@ import { noteStats, noteSuggestions } from '../../src/queries/notes';
 import { today } from '../../src/lib/dates';
 import backup from '../fixtures/backup-1.8.0.json';
 
-const load = () => { const d = migrate(JSON.parse(JSON.stringify(backup))); setLedger(d); return d; };
+const load = () => {
+  const d = migrate(JSON.parse(JSON.stringify(backup)));
+  setLedger(d);
+  return d;
+};
 
 describe('ledger queries', () => {
   beforeEach(load);
@@ -24,7 +28,8 @@ describe('ledger queries', () => {
   });
   it('labels payments and accounts', () => {
     const upi = S.tx.find(t => t.id === 't5')!;
-    expect(methodOf(upi)).toBe('upi'); expect(payLabel(upi)).toBe('UPI · HDFC Bank');
+    expect(methodOf(upi)).toBe('upi');
+    expect(payLabel(upi)).toBe('UPI · HDFC Bank');
     expect(payLabel(S.tx.find(t => t.id === 't1')!)).toBe('Cash');
     expect(acctName('nope')).toBe('Unknown account');
   });
@@ -39,7 +44,8 @@ describe('statement cycle', () => {
   it('always brackets today and ends on the statement day', () => {
     for (const day of [1, 15, 28, 31]) {
       const p = billPeriod(day);
-      expect(p.from <= today()).toBe(true); expect(p.to >= today()).toBe(true);
+      expect(p.from <= today()).toBe(true);
+      expect(p.to >= today()).toBe(true);
       expect(+p.to.slice(8, 10)).toBeLessThanOrEqual(day);
     }
   });
@@ -68,24 +74,41 @@ describe('cash in hand', () => {
 
 describe('recurring entries', () => {
   it('adds the months since lastApplied up to today, never beyond it', () => {
-    const d = load(); const rent = d.recurring.find(r => r.id === 'r1')!; rent.lastApplied = ''; rent.since = '2026-08';
+    const d = load();
+    const rent = d.recurring.find(r => r.id === 'r1')!;
+    rent.lastApplied = '';
+    rent.since = '2026-08';
     const n0 = d.tx.length;
     expect(applyRecurringTo(d, '2026-10', 0)).toBe(2);
     expect(d.tx.slice(n0).map(t => t.date)).toEqual(['2026-08-01', '2026-09-01']);
     expect(rent.lastApplied).toBe('2026-09');
     expect(applyRecurringTo(d, '2026-10', 30)).toBe(1);
-    expect(d.tx.at(-1)).toMatchObject({ date: '2026-10-01', recurringId: 'r1', amount: 15000, method: 'bank', vehicleId: '' });
+    expect(d.tx.at(-1)).toMatchObject({
+      date: '2026-10-01',
+      recurringId: 'r1',
+      amount: 15000,
+      method: 'bank',
+      vehicleId: '',
+    });
     expect(applyRecurringTo(d, '2026-10', 30)).toBe(0);
   });
   it('clamps the day for short months and routes income to the income list', () => {
-    const d = load(); const sal = d.recurring.find(r => r.id === 'r2')!; sal.lastApplied = ''; sal.since = '2026-02'; sal.day = 31;
+    const d = load();
+    const sal = d.recurring.find(r => r.id === 'r2')!;
+    sal.lastApplied = '';
+    sal.since = '2026-02';
+    sal.day = 31;
     const n0 = d.income.length;
     expect(applyRecurringTo(d, '2026-03', 31)).toBe(2);
     expect(d.income.slice(n0).map(i => i.date)).toEqual(['2026-02-28', '2026-03-31']);
     expect(d.income.at(-1)!.method).toBe('bank');
   });
   it('skips paused entries', () => {
-    const d = load(); d.recurring.forEach(r => { r.active = false; r.lastApplied = ''; });
+    const d = load();
+    d.recurring.forEach(r => {
+      r.active = false;
+      r.lastApplied = '';
+    });
     expect(applyRecurringTo(d, '2026-10', 30)).toBe(0);
   });
 });

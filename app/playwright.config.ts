@@ -25,10 +25,12 @@ export default defineConfig({
     baseURL,
     trace: 'retain-on-failure',
   },
-  webServer: process.env.APP_URL ? undefined : {
-    command: `npm run build && npx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
-    url: `${baseURL}/index.html`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: process.env.APP_URL
+    ? undefined
+    : {
+        command: `npm run build && npx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
+        url: `${baseURL}/index.html`,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 });

@@ -3,8 +3,17 @@ import { App } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 let app: App;
-test.beforeAll(async ({ browser }) => { app = await App.open(browser, 'fuel'); await app.goto(); await app.finishWelcome('Shreya'); await app.add(); });
-test.afterAll(async () => { await app?.close(); });
+
+test.beforeAll(async ({ browser }) => {
+  app = await App.open(browser, 'fuel');
+  await app.goto();
+  await app.finishWelcome('Shreya');
+  await app.add();
+});
+
+test.afterAll(async () => {
+  await app?.close();
+});
 
 const page = () => app.page;
 const card = () => app.page.locator('#fuel-card');
@@ -36,14 +45,16 @@ test('the close button hides the card', async () => {
 
 test('a vehicle is added with Enter and selected; without a card the button asks for one', async () => {
   await toggle().click();
-  await app.fill('#veh-name', 'Swift'); await page().press('#veh-name', 'Enter');
+  await app.fill('#veh-name', 'Swift');
+  await page().press('#veh-name', 'Enter');
   await expect(vehicleOn()).toHaveText('Swift');
   expect((await app.data()).vehicles).toHaveLength(1);
   await expect(card()).toContainText('Choose the credit card…');
 });
 
 test('the picker returns to the fuel card with the card chosen', async () => {
-  await card().locator('[data-open-pick="card"]').click(); await app.pick('regalia gold', 'HDFC Bank Regalia Gold');
+  await card().locator('[data-open-pick="card"]').click();
+  await app.pick('regalia gold', 'HDFC Bank Regalia Gold');
   await expect(app.sheet).toBeHidden();
   await expect(cardOn()).toHaveText('HDFC Bank Regalia Gold');
 });
@@ -69,12 +80,16 @@ test('the amount clears after a save, ready for the next fill', async () => {
 });
 
 test('a second vehicle starts blank and can use another card', async () => {
-  await card().locator('[data-veh-new]').click(); await app.fill('#veh-name', 'Activa'); await app.click('#veh-add');
+  await card().locator('[data-veh-new]').click();
+  await app.fill('#veh-name', 'Activa');
+  await app.click('#veh-add');
   await expect(vehicleOn()).toHaveText('Activa');
   await expect(amount()).toHaveValue('');
   await expect(cardOn()).toHaveText('HDFC Bank Regalia Gold');
-  await card().locator('[data-open-pick="card"]').click(); await app.pick('amex platinum travel', 'American Express Platinum Travel');
-  await amount().fill('300'); await saveBtn().click();
+  await card().locator('[data-open-pick="card"]').click();
+  await app.pick('amex platinum travel', 'American Express Platinum Travel');
+  await amount().fill('300');
+  await saveBtn().click();
   await expect(saveBtn()).toHaveText(/^Log fuel · Activa · American Express Platinum Travel$/);
   await expect(card().locator('.chip[data-fuel-acct]')).toHaveCount(2);
 });
@@ -86,8 +101,11 @@ test('switching vehicle restores its own last card and keeps the amount empty', 
 });
 
 test('closing the card clears the typed amount and the vehicle box', async () => {
-  await amount().fill('123'); await card().locator('[data-veh-new]').click(); await app.fill('#veh-name', 'Scrap');
-  await card().locator('[data-fuel-close]').click(); await toggle().click();
+  await amount().fill('123');
+  await card().locator('[data-veh-new]').click();
+  await app.fill('#veh-name', 'Scrap');
+  await card().locator('[data-fuel-close]').click();
+  await toggle().click();
   await expect(amount()).toHaveValue('');
   await expect(card().locator('#veh-name')).toHaveCount(0);
   expect((await app.data()).vehicles).toHaveLength(2);
@@ -100,9 +118,12 @@ test('fuel stays open across screens and a statement day shows the bill on the c
   await expect(app.main).toContainText('this bill so far');
   await app.add();
   await expect(card()).toBeVisible();
-  await card().locator(`.chip[data-fuel-acct="${amex}"]`).click(); await amount().fill('2000');
+  await card().locator(`.chip[data-fuel-acct="${amex}"]`).click();
+  await amount().fill('2000');
   await expect(card()).toContainText(/American Express Platinum Travel\s*bill so far ₹300/);
-  await expect(page().locator('#fuel-hint')).toContainText(/After this, American Express Platinum Travel bill so far ₹2,300 \(closes 15 /);
+  await expect(page().locator('#fuel-hint')).toContainText(
+    /After this, American Express Platinum Travel bill so far ₹2,300 \(closes 15 /,
+  );
   await amount().fill('');
   await app.shot('01-fuel-card');
 });
@@ -117,7 +138,9 @@ test('the Month screen has the Fuel card with totals, the fill map and per-vehic
   await expect(page().locator('.fdays .fd.on.today')).toHaveCount(1);
   const now = new Date();
   await expect(page().locator('.fdays .fd')).toHaveCount(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
-  expect(m).toMatch(/Swift/); expect(m).toMatch(/Activa/); expect(m).toMatch(/1 fill · ₹2,000 each/);
+  expect(m).toMatch(/Swift/);
+  expect(m).toMatch(/Activa/);
+  expect(m).toMatch(/1 fill · ₹2,000 each/);
   expect(m).toMatch(/American Express Platinum Travel · fuel is ₹300 of this bill/);
 });
 

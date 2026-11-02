@@ -12,33 +12,88 @@ import { remember } from '../../ui/pay';
 import { render } from '../../ui/render';
 import { budgetWarn } from '../../ui/notify';
 /* Expense detail and edit sheets, with their save and delete. */
-export function editSheet(p:string[]):SheetView{
-    const t=S.tx.find(x=>x.id===p[1]);if(!t)return {title:'Expense',body:'<div class="hint">This expense was deleted.</div>'};
-    if(!ui.editTx||ui.editTx.id!==p[1])ui.editTx={...t,amount:String(t.amount)};
-    return {title:'Edit expense',sub:'Originally '+longDate(t.date),body:editFormHTML(ui.editTx,'edit'),tall:true};
+export function editSheet(p: string[]): SheetView {
+  const t = S.tx.find(x => x.id === p[1]);
+  if (!t) return { title: 'Expense', body: '<div class="hint">This expense was deleted.</div>' };
+  if (!ui.editTx || ui.editTx.id !== p[1]) ui.editTx = { ...t, amount: String(t.amount) };
+  return {
+    title: 'Edit expense',
+    sub: 'Originally ' + longDate(t.date),
+    body: editFormHTML(ui.editTx, 'edit'),
+    tall: true,
+  };
 }
-export function txSheet(p:string[]):SheetView{
-    const t=S.tx.find(x=>x.id===p[1]);if(!t)return {title:'Expense',body:'<div class="hint">This expense was deleted.</div>'};
-    const m=methodOf(t);const rec=t.recurringId?S.recurring.find(r=>r.id===t.recurringId):null;
-    return {title:'Expense',sub:longDate(t.date)+(t.time?' at '+fmtTime(t.time):''),body:`<div class="tx-detail"><div class="tx-amt">${esc(money(t.amount))}</div>
-      <div class="tx-cat"><span class="dot" style="background:${catColor(t.category)}"></span>${esc(t.category)}${t.recurringId?'<span class="tag">auto</span>':''}</div>
-      <dl class="kv-list"><div><dt>Payment</dt><dd>${esc(METHOD_LABEL[m])}</dd></div>${m!=='cash'?`<div><dt>${m==='card'?'Card':'Bank'}</dt><dd>${esc(acctName(t.accountId))}</dd></div>`:''}<div><dt>Day</dt><dd>${esc(DAYS[parseDate(t.date).getDay()])}</dd></div><div><dt>Date</dt><dd>${esc(midDate(t.date))}</dd></div><div><dt>Time</dt><dd>${t.time?esc(fmtTime(t.time)):'Not recorded'}</dd></div>${t.note?`<div><dt>Note</dt><dd>${esc(t.note)}</dd></div>`:''}${t.recurringId?`<div><dt>Added by</dt><dd>${rec?'Recurring: '+esc(recurLabel(rec)):'A recurring expense (since deleted)'}</dd></div>`:''}</dl>
+export function txSheet(p: string[]): SheetView {
+  const t = S.tx.find(x => x.id === p[1]);
+  if (!t) return { title: 'Expense', body: '<div class="hint">This expense was deleted.</div>' };
+  const m = methodOf(t);
+  const rec = t.recurringId ? S.recurring.find(r => r.id === t.recurringId) : null;
+  return {
+    title: 'Expense',
+    sub: longDate(t.date) + (t.time ? ' at ' + fmtTime(t.time) : ''),
+    body: `<div class="tx-detail"><div class="tx-amt">${esc(money(t.amount))}</div>
+      <div class="tx-cat"><span class="dot" style="background:${catColor(t.category)}"></span>${esc(t.category)}${t.recurringId ? '<span class="tag">auto</span>' : ''}</div>
+      <dl class="kv-list"><div><dt>Payment</dt><dd>${esc(METHOD_LABEL[m])}</dd></div>${m !== 'cash' ? `<div><dt>${m === 'card' ? 'Card' : 'Bank'}</dt><dd>${esc(acctName(t.accountId))}</dd></div>` : ''}<div><dt>Day</dt><dd>${esc(DAYS[parseDate(t.date).getDay()])}</dd></div><div><dt>Date</dt><dd>${esc(midDate(t.date))}</dd></div><div><dt>Time</dt><dd>${t.time ? esc(fmtTime(t.time)) : 'Not recorded'}</dd></div>${t.note ? `<div><dt>Note</dt><dd>${esc(t.note)}</dd></div>` : ''}${t.recurringId ? `<div><dt>Added by</dt><dd>${rec ? 'Recurring: ' + esc(recurLabel(rec)) : 'A recurring expense (since deleted)'}</dd></div>` : ''}</dl>
       <button type="button" class="btn-primary" data-detail="edit|${t.id}">Edit</button>
-      <div class="two"><button type="button" data-detail="day|${t.date}">All of that day</button><button type="button" data-detail="cat|${t.date.slice(0,7)}|${esc(t.category)}">${esc(t.category)} that month</button></div>
-      <button type="button" class="btn-danger" data-del-tx="${t.id}">Delete this expense</button></div>`};
+      <div class="two"><button type="button" data-detail="day|${t.date}">All of that day</button><button type="button" data-detail="cat|${t.date.slice(0, 7)}|${esc(t.category)}">${esc(t.category)} that month</button></div>
+      <button type="button" class="btn-danger" data-del-tx="${t.id}">Delete this expense</button></div>`,
+  };
 }
-export function saveEdit(){
-  const st=ui.editTx;if(!st)return;const t=S.tx.find(x=>x.id===st.id);if(!t){closeSheet();return;}
-  const amt=parseAmt(st.amount);if(!(amt>0)){toast('Enter an amount');return;}
-  if(!st.category){toast('Pick a category');return;}
-  if(st.method!=='cash'&&!acct(st.accountId)){toast(chooseMsg(st.method));return;}
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(st.date)){toast('Pick a valid date');return;}
-  if(st.date>today()){toast('The date cannot be in the future');return;}
-  t.amount=Math.round(amt*100)/100;t.category=st.category;t.method=st.method;t.accountId=st.method==='cash'?'cash':st.accountId;t.date=st.date;t.time=/^\d{2}:\d{2}$/.test(st.time)?st.time:'';t.note=String(st.note||'').trim();
-  save();remember(acct(t.accountId));closeSheet();render(false);toast('Saved changes · '+money(t.amount)+' · '+t.category);budgetWarn(t);
+export function saveEdit() {
+  const st = ui.editTx;
+  if (!st) return;
+  const t = S.tx.find(x => x.id === st.id);
+  if (!t) {
+    closeSheet();
+    return;
+  }
+  const amt = parseAmt(st.amount);
+  if (!(amt > 0)) {
+    toast('Enter an amount');
+    return;
+  }
+  if (!st.category) {
+    toast('Pick a category');
+    return;
+  }
+  if (st.method !== 'cash' && !acct(st.accountId)) {
+    toast(chooseMsg(st.method));
+    return;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(st.date)) {
+    toast('Pick a valid date');
+    return;
+  }
+  if (st.date > today()) {
+    toast('The date cannot be in the future');
+    return;
+  }
+  t.amount = Math.round(amt * 100) / 100;
+  t.category = st.category;
+  t.method = st.method;
+  t.accountId = st.method === 'cash' ? 'cash' : st.accountId;
+  t.date = st.date;
+  t.time = /^\d{2}:\d{2}$/.test(st.time) ? st.time : '';
+  t.note = String(st.note || '').trim();
+  save();
+  remember(acct(t.accountId));
+  closeSheet();
+  render(false);
+  toast('Saved changes · ' + money(t.amount) + ' · ' + t.category);
+  budgetWarn(t);
 }
-export function deleteTx(id:string){
-  const i=S.tx.findIndex(x=>x.id===id);if(i<0)return;
-  const t=S.tx[i];S.tx.splice(i,1);save();closeSheet();render(false);
-  offerUndo('Deleted '+money(t.amount)+' · '+t.category,()=>{S.tx.splice(Math.min(i,S.tx.length),0,t);save();render(false);toast('Restored '+money(t.amount)+' · '+t.category);});
+export function deleteTx(id: string) {
+  const i = S.tx.findIndex(x => x.id === id);
+  if (i < 0) return;
+  const t = S.tx[i];
+  S.tx.splice(i, 1);
+  save();
+  closeSheet();
+  render(false);
+  offerUndo('Deleted ' + money(t.amount) + ' · ' + t.category, () => {
+    S.tx.splice(Math.min(i, S.tx.length), 0, t);
+    save();
+    render(false);
+    toast('Restored ' + money(t.amount) + ' · ' + t.category);
+  });
 }

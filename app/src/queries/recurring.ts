@@ -13,21 +13,37 @@ export function applyRecurringTo(d: Ledger, tm: string, td: number) {
   let added = 0;
   d.recurring.forEach(r => {
     if (!r.active) return;
-    let m = r.lastApplied ? addMonths(r.lastApplied, 1) : (r.since || tm); let guard = 0;
+    let m = r.lastApplied ? addMonths(r.lastApplied, 1) : r.since || tm;
+    let guard = 0;
     while (m <= tm && guard++ < 120) {
       const day = Math.min(r.day, daysInMonth(m));
       if (!(m < tm || day <= td)) break;
-      const entry = { id: uid(), amount: r.amount, category: r.category, accountId: r.method === 'cash' ? 'cash' : r.accountId, method: r.method, date: m + '-' + pad(day), time: '', note: r.note, recurringId: r.id };
+      const entry = {
+        id: uid(),
+        amount: r.amount,
+        category: r.category,
+        accountId: r.method === 'cash' ? 'cash' : r.accountId,
+        method: r.method,
+        date: m + '-' + pad(day),
+        time: '',
+        note: r.note,
+        recurringId: r.id,
+      };
       if (r.kind === 'income') d.income.push({ ...entry, method: r.method === 'cash' ? 'cash' : 'bank' });
       else d.tx.push({ ...entry, vehicleId: '' });
-      r.lastApplied = m; added++; m = addMonths(m, 1);
+      r.lastApplied = m;
+      added++;
+      m = addMonths(m, 1);
     }
   });
   return added;
 }
 export function applyRecurring() {
   const added = applyRecurringTo(S, thisMonth(), +today().slice(8, 10));
-  if (added) { save(); toast(added + ' recurring entr' + (added === 1 ? 'y' : 'ies') + ' added automatically'); }
+  if (added) {
+    save();
+    toast(added + ' recurring entr' + (added === 1 ? 'y' : 'ies') + ' added automatically');
+  }
   return added;
 }
 export const recurLabel = (r: { note: string; category: string }) => r.note || r.category;
