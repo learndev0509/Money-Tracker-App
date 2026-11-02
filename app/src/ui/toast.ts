@@ -6,7 +6,7 @@ export interface ToastAction {
   fn: () => void;
 }
 let toastT: ReturnType<typeof setTimeout> | undefined;
-export function toast(msg: string, action?: ToastAction | null, tone?: 'warn') {
+export function toast(msg: string, action?: ToastAction | null, tone?: 'warn', ms = action ? 6000 : 2400) {
   const t = el('#toast'),
     tx = el('#toast-text'),
     b = el('#toast-btn');
@@ -30,13 +30,10 @@ export function toast(msg: string, action?: ToastAction | null, tone?: 'warn') {
   void t.offsetWidth;
   t.classList.add('show');
   clearTimeout(toastT);
-  toastT = setTimeout(
-    () => {
-      t.classList.remove('show', 'act');
-      b.hidden = true;
-    },
-    action ? 6000 : 2400,
-  );
+  toastT = setTimeout(() => {
+    t.classList.remove('show', 'act');
+    b.hidden = true;
+  }, ms);
 }
 /** A toast with an Undo button; only the latest offer can still be taken. */
 export function offerUndo(msg: string, restore: () => void) {

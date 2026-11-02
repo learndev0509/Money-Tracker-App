@@ -100,6 +100,20 @@ test('the app serves from an https origin, declares five local faces and the ser
   await app.finishWelcome('Shreya');
 });
 
+test('a newer build taking over offers a reload; the first controller does not', async () => {
+  // The first load was claimed by its own worker and showed no prompt.
+  await expect(app.toast).not.toHaveClass(/show/);
+  // A controlled page that sees a controller change has been updated under it.
+  await app.reload();
+  expect(await page().evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  await page().evaluate(() => navigator.serviceWorker.dispatchEvent(new Event('controllerchange')));
+  await app.expectToast(/new version is ready/);
+  await expect(app.toastBtn).toHaveText('Reload');
+  await app.toastBtn.click();
+  await expect(app.main.locator('.hero')).toBeVisible();
+  await expect(app.toast).not.toHaveClass(/show/);
+});
+
 test('Face ID controls stay hidden until a PIN exists', async () => {
   await app.tab('settings');
   await expect(page().locator('[data-face]')).toHaveCount(0);

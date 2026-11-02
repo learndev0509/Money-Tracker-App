@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import { test, expect } from '@playwright/test';
 import { App } from './helpers';
+import pkg from '../package.json' with { type: 'json' };
 
 test.describe.configure({ mode: 'serial' });
 let app: App;
@@ -175,10 +176,13 @@ test('the hero opens Trends with four charts; a mover opens the category sheet o
 test('Settings shows the version chip as a label and saves stamp the app version', async () => {
   await app.tab('settings');
   const chip = page().locator('#version-chip');
-  await expect(chip).toContainText('Version 1.8.0');
-  await expect(chip).toContainText('30 October 2026');
+  const built = new Date(pkg.buildDate + 'T12:00:00');
+  await expect(chip).toContainText('Version ' + pkg.version);
+  await expect(chip).toContainText(
+    built.getDate() + ' ' + built.toLocaleString('en-GB', { month: 'long' }) + ' ' + built.getFullYear(),
+  );
   expect(await chip.evaluate(e => e.tagName)).toBe('SPAN');
-  expect((await app.data()).meta.appVersion).toBe('1.8.0');
+  expect((await app.data()).meta.appVersion).toBe(pkg.version);
 });
 
 test('Settings exports a well-formed PDF named by month, and the dashboard links to it', async () => {
@@ -225,7 +229,7 @@ test('Privacy and Terms open from Settings; Save to Files is hidden where files 
   await expect(page().locator('[data-detail="terms|app"]')).toHaveCount(1);
   await expect(page().locator('#export-share')).toHaveCount(0);
   await app.click('[data-detail="privacy|app"]');
-  for (const s of ['Nothing leaves your phone', 'no analytics', 'AES-256', 'version 1.8.0'])
+  for (const s of ['Nothing leaves your phone', 'no analytics', 'AES-256', 'version ' + pkg.version])
     await expect(app.sheetBody).toContainText(s);
   await app.click('#sheet button[data-close]');
   await app.click('[data-detail="terms|app"]');

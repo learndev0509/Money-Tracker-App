@@ -1,8 +1,8 @@
 /* Screen state: what is being shown, filters, drafts being edited. Nothing here is persisted. */
 import type { View } from '../lib/constants';
-import type { Method, Tx } from '../data/model';
+import type { Method } from '../data/model';
 import { thisMonth, today } from '../lib/dates';
-import { sortTx } from '../queries/ledger';
+import { Dated, sortTx } from '../queries/ledger';
 
 /** A record being edited in a sheet: amount as typed, plus whichever fields that kind of record has. */
 export interface Draft {
@@ -64,7 +64,7 @@ export const isHistSort = (x: unknown): x is HistSort => typeof x === 'string' &
 export type CalcTarget = 'form' | 'fuel' | 'sheet';
 export const isCalcTarget = (x: unknown): x is CalcTarget => x === 'form' || x === 'fuel' || x === 'sheet';
 export const hf = { method: '' as '' | Method, cat: '', sort: 'new' as HistSort };
-export const histSorter = (): ((a: Tx, b: Tx) => number) =>
+export const histSorter = <T extends Dated & { amount: number }>(): ((a: T, b: T) => number) =>
   hf.sort === 'old'
     ? (a, b) => sortTx(b, a)
     : hf.sort === 'high'

@@ -1,6 +1,6 @@
 {
   "name": "money-tracker",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "private": true,
   "type": "module",
   "description": "Money tracker by Zestera - Vite + TypeScript module build of the single-file app",
@@ -14,10 +14,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test",
+    "e2e": "npm run build && playwright test",
     "e2e:report": "playwright show-report",
     "e2e:legacy": "node e2e/run.cjs",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run e2e"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -34,5 +34,5 @@
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
   },
-  "buildDate": "2026-10-30"
+  "buildDate": "2026-11-02"
 }

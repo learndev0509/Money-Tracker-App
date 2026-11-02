@@ -104,7 +104,7 @@ export function rDash() {
       )}
       <div class="list">${catRows(tx, total, c => 'cat|' + ui.period + '|' + c)}</div></div></section>
     <section class="card"><div class="card-head"><h2>Paid with</h2><span class="sub">Cash · bank · UPI · cards</span></div>${sourceSection(tx, total, id => 'acct|' + ui.period + '|' + id, isCur)}</section>
-    <section class="card"><div class="card-head"><h2>Biggest spends</h2><span class="sub">Top ${top.length}</span></div><div class="list">${top.map(txRow).join('')}</div></section>
+    <section class="card"><div class="card-head"><h2>Biggest spends</h2><span class="sub">Top ${top.length}</span></div><div class="list">${top.map(t => txRow(t)).join('')}</div></section>
     <section class="card"><div class="card-head"><h2>All expenses</h2><button type="button" class="btn-link btn-sm" style="min-height:0;padding:0" data-pdf="${ui.period}">PDF report ›</button></div>${dayGroups(tx)}</section>`
         : `<div class="card empty">${emptyArt()}<strong>Nothing spent in ${esc(monthLabel(ui.period))}${isCur ? ' yet' : ''}</strong><span>Every expense you add shows up here by day, category, cash, bank and card.</span>${isCur ? '<button type="button" class="btn-primary" style="max-width:260px" data-go="add">Add your first expense</button>' : ''}</div>`
     }

@@ -28,7 +28,9 @@ export default defineConfig({
   webServer: process.env.APP_URL
     ? undefined
     : {
-        command: `npm run build && npx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
+        // The build runs in the `e2e` script, not here: a preview server left running from an earlier run is
+        // reused, and this command would then be skipped, so dist/ must already be fresh when it starts.
+        command: `npx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`,
         url: `${baseURL}/index.html`,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,

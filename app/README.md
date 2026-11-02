@@ -16,10 +16,10 @@ npm run typecheck           tsc --noEmit
 npm test                    Vitest unit tests (tests/unit)
 npm run build               production build into dist/ (deploy that folder)
 npm run preview             serve dist/ on http://127.0.0.1:4173
-npm run e2e                 build, serve, and run the browser suites (Playwright Test, e2e/*.spec.ts)
+npm run e2e                 build dist/, serve it, and run the browser suites (Playwright Test, e2e/*.spec.ts)
 npm run e2e:report          open the HTML report of the last run (traces for any failure)
 npm run e2e:legacy          the eight original suites from ../tests through e2e/run.cjs
-npm run check               format:check, lint, typecheck, test, build, e2e in that order
+npm run check               format:check, lint, typecheck, test, e2e (which builds) in that order
 ```
 
 `npm run e2e -- fuel ui` runs only the specs whose file name matches. `APP_URL=https://staging.example
@@ -163,18 +163,25 @@ Baselines are named per platform; a machine on another OS records its own set on
 1. Change code under `src/`; keep new UI in the existing style.
 2. Bump `version` and `buildDate` in `package.json`.
 3. Add the version row to the features document; update `../README.txt` if deploy or first run changed.
-4. `npm run check` (type check, unit tests, build, browser suites).
+4. `npm run check` (format, lint, type check, unit tests, build, browser suites). Accept intended
+   golden changes with `npx vitest run -u` and intended visual changes with
+   `npm run e2e -- visual --update-snapshots`, and commit them with the change.
 5. Deploy `dist/` to the static host. Existing phones pick up `index.html` on the next online open.
 
-## Behaviour kept on purpose
+## 1.9.0, the first release from this folder
 
-Two small quirks of the single file were kept so the build renders identically; fix them in a
-release of their own if wanted:
+The module build first shipped the single file's behaviour unchanged (1.8.0, proven by the goldens).
+1.9.0 (2 November 2026) is the first release that changes it, on purpose:
 
-- lists built with `.map(txRow)` pass the array index as `fresh`, so every row after the first in
-  "Biggest spends" and the History ledger carries the `new` slide-in class;
-- `compact()` shows two decimals for crores (`₹1.20Cr`) because the trailing-zero trim only
-  removes an all-zero fraction.
+- only the row just saved slides in: `txRow` takes a boolean, so the lists built with `.map` no
+  longer hand it the array index and the `new` class;
+- `compact()` trims the trailing zero of a crore (`₹1.2Cr`, not `₹1.20Cr`);
+- History search finds income as well as expenses: income rows show in green with a plus, and the
+  totals read "spent +came in" wherever an income entry matched;
+- a newer build taking over offers a toast, "A new version is ready. Reload" (`src/ui/update.ts`): the
+  service worker calls `skipWaiting()`, so the page sees a `controllerchange`, and the registration is
+  re-checked whenever the app comes back to the foreground, because the browser only looks for a new
+  `sw.js` on navigation and a phone keeps the app open for days.
 
 ## Continuous integration
 
@@ -187,5 +194,4 @@ as an artifact to unzip into `e2e/visual/` and commit.
 ## Not in this folder
 
 Still separate steps from the same plan: the custom domain (Face ID passkeys are bound to the
-hostname), an in-app "new version, tap to reload" prompt, and zero-knowledge blob sync if users
-ask for it.
+hostname) and zero-knowledge blob sync if users ask for it.

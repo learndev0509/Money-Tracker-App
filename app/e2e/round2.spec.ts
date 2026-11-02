@@ -197,7 +197,7 @@ test('sorting by amount is a flat list, oldest first reverses', async () => {
 
 test('a search with no match offers clear, and clear returns to the month list', async () => {
   await app.fill('#hist-search', 'zzz');
-  await expect(histBody()).toContainText('No expenses match');
+  await expect(histBody()).toContainText('Nothing matches');
   await expect(histBody().locator('[data-hf-clear]')).toHaveCount(1);
   await app.click('#hist-body [data-hf-clear]');
   await expect(histBody()).toContainText('expenses');

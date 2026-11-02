@@ -1,0 +1,36 @@
+<div class="view"><div class="topbar"><div><h1>History</h1><span class="sub">7 expenses all time</span></div><button type="button" class="btn-add" id="add-btn" data-go="add" aria-label="Add expense"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+    <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="hist-search" type="search" placeholder="Search notes, categories, banks, cards, amounts" value="october" autocomplete="off"></div>
+    <div id="hist-filters"><div class="hsel">
+    <label>Year<select id="h-year" class="" aria-label="Year"><option value="2026" selected >2026</option></select></label>
+    <label>Month<select id="h-month" class="" aria-label="Month"><option value="1"  >January</option><option value="2"  >February</option><option value="3"  >March</option><option value="4"  >April</option><option value="5"  >May</option><option value="6"  >June</option><option value="7"  >July</option><option value="8"  >August</option><option value="9"  >September · 1</option><option value="10" selected >October · 6</option><option value="11"  disabled>November</option><option value="12"  disabled>December</option></select></label>
+    <label>Category<select id="h-cat" class="" aria-label="Category"><option value="" selected >All categories</option><option value="Bills"  >Bills</option><option value="Entertainment"  >Entertainment</option><option value="Food"  >Food</option><option value="Fuel"  >Fuel</option><option value="Groceries"  >Groceries</option><option value="Health"  >Health</option><option value="Kids"  >Kids</option><option value="Other"  >Other</option><option value="Rent"  >Rent</option><option value="Shopping"  >Shopping</option><option value="Transport"  >Transport</option></select></label>
+    <label>Paid with<select id="h-method" class="" aria-label="Paid with"><option value="" selected >All payments</option><option value="cash"  >Cash</option><option value="bank"  >Bank account</option><option value="upi"  >UPI</option><option value="card"  >Credit card</option></select></label>
+    <label>Sort<select id="h-sort" class="" aria-label="Sort"><option value="new" selected >Newest first</option><option value="old"  >Oldest first</option><option value="high"  >Amount: high to low</option><option value="low"  >Amount: low to high</option></select></label>
+    <label>&nbsp;<button type="button" class="btn-sm" style="min-height:40px" data-hf-clear >Clear filters</button></label>
+  </div></div>
+    <div id="hist-body"><div class="view"><div class="kv" style="padding:0 2px"><span>8 matches · “october” <button type="button" class="btn-link btn-sm" style="min-height:0;padding:0 4px" data-hf-clear>clear</button></span><b>₹22,149 <span style="color:var(--good)">+₹85,500</span></b></div>
+    <section class="card"><button type="button" class="dayhead" data-detail="month|2026-10" style="padding-top:0"><span>October 2026 · 8</span><span class="amt">₹22,149 <span style="color:var(--good)">+₹85,500</span></span></button><div class="list"><button type="button" class="txrow" data-detail="tx|t5">
+    <span class="ci" style="--cc:var(--c1)"><svg viewBox="0 0 24 24"><path d="M4 11h16a8 8 0 0 1-16 0zM9 5v3M12 4v4M15 5v3"/></svg></span>
+    <span class="name">Food<span class="note"> · Swiggy</span><span class="small">Thu 22 Oct · 1:00 pm · UPI · HDFC Bank</span></span>
+    <span class="amt">₹80</span><span class="chev">›</span></button><button type="button" class="txrow" data-detail="tx|t4">
+    <span class="ci" style="--cc:var(--c2)"><svg viewBox="0 0 24 24"><path d="M3 9h18l-2 11H5zM8 9a4 4 0 0 1 8 0"/></svg></span>
+    <span class="name">Groceries<span class="note"> · Swiggy Instamart</span><span class="small">Wed 21 Oct · 7:45 pm · HDFC Bank</span></span>
+    <span class="amt">₹450</span><span class="chev">›</span></button><button type="button" class="txrow" data-detail="tx|t3">
+    <span class="ci" style="--cc:var(--c4)"><svg viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h14M7 7h6M15 9h2l3 3v7a1.5 1.5 0 0 1-3 0v-5h-2"/></svg></span>
+    <span class="name">Fuel<span class="note"> · Swift</span><span class="small">Tue 20 Oct · 8:01 am · HDFC Bank Regalia Gold</span></span>
+    <span class="amt">₹2,500</span><span class="chev">›</span></button><button type="button" class="txrow" data-detail="inc|i2">
+    <span class="ci" style="--cc:var(--good)"><svg viewBox="0 0 24 24"><path d="M12 3v11M7 9l5 5 5-5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+    <span class="name">Gift<span class="small">Sat 10 Oct · 6:00 pm · Cash</span></span>
+    <span class="amt" style="color:var(--good)">+₹500</span><span class="chev">›</span></button><button type="button" class="txrow" data-detail="tx|t2">
+    <span class="ci" style="--cc:var(--c5)"><svg viewBox="0 0 24 24"><path d="M6 8h12l1 13H5zM9 8V6a3 3 0 0 1 6 0v2"/></svg></span>
+    <span class="name">Shopping<span class="note"> · Shoes</span><span class="small">Mon 5 Oct · 9:30 pm · HDFC Bank Regalia Gold</span></span>
+    <span class="amt">₹3,999</span><span class="chev">›</span></button><button type="button" class="txrow" data-detail="tx|t1">
+    <span class="ci" style="--cc:var(--c1)"><svg viewBox="0 0 24 24"><path d="M4 11h16a8 8 0 0 1-16 0zM9 5v3M12 4v4M15 5v3"/></svg></span>
+    <span class="name">Food<span class="note"> · Chai</span><span class="small">Fri 2 Oct · 9:12 am · Cash</span></span>
+    <span class="amt">₹120</span><span class="chev">›</span></button><button type="button" class="txrow" data-detail="tx|t6">
+    <span class="ci" style="--cc:var(--c7)"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></svg></span>
+    <span class="name">Rent<span class="note"> · Rent</span><span class="tag">auto</span><span class="small">Thu 1 Oct · HDFC Bank</span></span>
+    <span class="amt">₹15,000</span><span class="chev">›</span></button><button type="button" class="txrow" data-detail="inc|i1">
+    <span class="ci" style="--cc:var(--good)"><svg viewBox="0 0 24 24"><path d="M12 3v11M7 9l5 5 5-5M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+    <span class="name">Salary<span class="note"> · October salary</span><span class="tag">auto</span><span class="small">Thu 1 Oct · HDFC Bank</span></span>
+    <span class="amt" style="color:var(--good)">+₹85,000</span><span class="chev">›</span></button></div></section></div></div></div>

@@ -10,6 +10,7 @@ import { applyTheme, go, moveTabInd, render, updateClock } from './ui/render';
 import { bindEvents } from './events';
 import { bindLock, lock } from './screens/lock';
 import { bindWelcome, showWelcome } from './screens/welcome';
+import { registerServiceWorker } from './ui/update';
 
 installErrorLog();
 loadInitial();
@@ -60,13 +61,4 @@ else {
   if (!S.profile.firstName) showWelcome();
 }
 
-if (import.meta.env.PROD) {
-  try {
-    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol))
-      navigator.serviceWorker.register('./sw.js').catch(() => {
-        /* offline support is optional */
-      });
-  } catch (e) {
-    /* ignore */
-  }
-}
+if (import.meta.env.PROD) registerServiceWorker();

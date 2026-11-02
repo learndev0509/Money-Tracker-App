@@ -61,8 +61,9 @@ export const money = (n: number | string) => {
   const v = Math.round((+n || 0) * 100) / 100;
   return (Number.isInteger(v) ? fmt0 : fmt2).format(v);
 };
-export const trim0 = (s: string) => s.replace(/\.0+$/, '');
-/** ₹2.5k, ₹1.5L, ₹1.20Cr: the short form used in tiles and chart labels. */
+/** Drop the trailing zeros of a fraction and a bare point: 1.00 -> 1, 1.20 -> 1.2. */
+export const trim0 = (s: string) => s.replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+/** ₹2.5k, ₹1.5L, ₹1.2Cr: the short form used in tiles and chart labels. */
 export const compact = (n: number | string) => {
   n = +n || 0;
   const neg = n < 0;

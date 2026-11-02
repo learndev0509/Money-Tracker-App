@@ -52,6 +52,7 @@ describe('money and compact', () => {
     expect(compact(100000)).toBe('₹1L');
     expect(compact(12500000)).toBe('₹1.25Cr');
     expect(compact(10000000)).toBe('₹1Cr');
+    expect(compact(12000000)).toBe('₹1.2Cr');
     expect(compact(2500)).toBe('₹2.5k');
     expect(compact(15000)).toBe('₹15k');
     expect(compact(999)).toBe('₹999');

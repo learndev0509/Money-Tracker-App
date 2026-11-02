@@ -1,5 +1,5 @@
 import { HistSort } from '../ui/state';
-import { Tx } from '../data/model';
+import { Income, Tx } from '../data/model';
 import { S } from '../data/storage';
 import { longDate, money, monthLabel, today } from '../lib/dates';
 import { HSORT, hf, histSorter, ui } from '../ui/state';
@@ -8,7 +8,7 @@ import { MONTHS, el, esc, pad } from '../lib/constants';
 import { METHODS } from '../data/model';
 import { ADD_BTN } from '../ui/render';
 import { SEARCH_SVG } from '../lib/icons';
-import { dayGroups, txRow } from '../ui/shared';
+import { dayGroups, incRow, txRow } from '../ui/shared';
 /* ---------- HISTORY ---------- */
 export const histYears = () =>
   [
@@ -19,7 +19,8 @@ export const histYears = () =>
         .concat([+today().slice(0, 4)]),
     ),
   ].sort((a, b) => b - a);
-export function histFilter(list: Tx[]) {
+/** The Category and Paid with dropdowns, applied to expenses or to income. */
+export function histFilter<T extends Tx | Income>(list: T[]) {
   return list.filter(t => (!hf.method || methodOf(t) === hf.method) && (!hf.cat || t.category === hf.cat));
 }
 export function filterChipsHTML() {
@@ -75,23 +76,30 @@ export function monthListHTML() {
   const byAmount = hf.sort === 'high' || hf.sort === 'low';
   return `<div class="view">
     <div class="kv" style="padding:0 2px"><span>${esc(monthLabel(k))} · ${items.length} expense${items.length === 1 ? '' : 's'}${filtered ? ' · filtered' : ''} · ${esc(HSORT[hf.sort].toLowerCase())}</span><b>${esc(money(sum(items)))}</b></div>
-    ${items.length ? `<section class="card">${byAmount ? `<div class="list">${items.map(txRow).join('')}</div>` : dayGroups(items, hf.sort === 'old')}</section>` : `<div class="card empty"><strong>${all.length ? 'Nothing matches the filters in ' + esc(monthLabel(k)) : 'Nothing spent in ' + esc(monthLabel(k))}</strong><span>${all.length ? 'Change Category or Paid with above to see every expense that month.' : 'Pick another month or year above.'}</span>${all.length ? '<button type="button" class="btn-sm" data-hf-clear>Clear filters</button>' : ''}</div>`}
+    ${items.length ? `<section class="card">${byAmount ? `<div class="list">${items.map(t => txRow(t)).join('')}</div>` : dayGroups(items, hf.sort === 'old')}</section>` : `<div class="card empty"><strong>${all.length ? 'Nothing matches the filters in ' + esc(monthLabel(k)) : 'Nothing spent in ' + esc(monthLabel(k))}</strong><span>${all.length ? 'Change Category or Paid with above to see every expense that month.' : 'Pick another month or year above.'}</span>${all.length ? '<button type="button" class="btn-sm" data-hf-clear>Clear filters</button>' : ''}</div>`}
   </div>`;
+}
+/** The total of a search result: what was spent, and what came in when any income matched. */
+function searchTotal(items: (Tx | Income)[]) {
+  const inc = new Set<Tx | Income>(S.income);
+  const spent = sum(items.filter(t => !inc.has(t))),
+    got = sum(items.filter(t => inc.has(t)));
+  const plus = got ? `<span style="color:var(--good)">+${esc(money(got))}</span>` : '';
+  return spent || !got ? esc(money(spent)) + (plus ? ' ' + plus : '') : plus;
 }
 export function searchHTML() {
   const q = ui.histQuery.trim().toLowerCase();
-  const hits = histFilter(S.tx)
-    .filter(
-      t =>
-        t.category.toLowerCase().includes(q) ||
-        t.note.toLowerCase().includes(q) ||
-        payLabel(t).toLowerCase().includes(q) ||
-        METHOD_LABEL[methodOf(t)].toLowerCase().includes(q) ||
-        String(t.amount).includes(q.replace(/,/g, '')) ||
-        monthLabel(t.date.slice(0, 7)).toLowerCase().includes(q) ||
-        longDate(t.date).toLowerCase().includes(q),
-    )
-    .sort(histSorter());
+  const inc = new Set<Tx | Income>(S.income);
+  const matches = (t: Tx | Income) =>
+    t.category.toLowerCase().includes(q) ||
+    t.note.toLowerCase().includes(q) ||
+    payLabel(t).toLowerCase().includes(q) ||
+    METHOD_LABEL[methodOf(t)].toLowerCase().includes(q) ||
+    String(t.amount).includes(q.replace(/,/g, '')) ||
+    monthLabel(t.date.slice(0, 7)).toLowerCase().includes(q) ||
+    longDate(t.date).toLowerCase().includes(q);
+  const hits: (Tx | Income)[] = [...histFilter(S.tx), ...histFilter(S.income)].filter(matches).sort(histSorter());
+  const row = (t: Tx | Income) => (inc.has(t) ? incRow(t as Income) : txRow(t as Tx));
   const what = [
     '“' + ui.histQuery.trim() + '”',
     hf.method ? { cash: 'cash', bank: 'bank accounts', upi: 'UPI', card: 'cards' }[hf.method] : '',
@@ -100,10 +108,10 @@ export function searchHTML() {
     .filter(Boolean)
     .join(' · ');
   if (!hits.length)
-    return `<div class="card empty"><strong>No expenses match ${esc(what)}</strong><span>Try fewer filters, or a category, a note, a bank or card name, an amount or a month.</span><button type="button" class="btn-sm" data-hf-clear>Clear search</button></div>`;
+    return `<div class="card empty"><strong>Nothing matches ${esc(what)}</strong><span>Try fewer filters, or a category, a note, a bank or card name, an amount or a month.</span><button type="button" class="btn-sm" data-hf-clear>Clear search</button></div>`;
   const groups = groupBy(hits, t => t.date.slice(0, 7)).sort(
     (a, b) => (hf.sort === 'old' ? -1 : 1) * b.key.localeCompare(a.key),
   );
-  return `<div class="view"><div class="kv" style="padding:0 2px"><span>${hits.length} match${hits.length === 1 ? '' : 'es'} · ${esc(what)} <button type="button" class="btn-link btn-sm" style="min-height:0;padding:0 4px" data-hf-clear>clear</button></span><b>${esc(money(sum(hits)))}</b></div>
-    ${hf.sort === 'high' || hf.sort === 'low' ? `<section class="card"><div class="list">${hits.map(txRow).join('')}</div></section>` : groups.map(g => `<section class="card"><button type="button" class="dayhead" data-detail="month|${g.key}" style="padding-top:0"><span>${esc(monthLabel(g.key))} · ${g.n}</span><span class="amt">${esc(money(g.v))}</span></button><div class="list">${g.items.map(txRow).join('')}</div></section>`).join('')}</div>`;
+  return `<div class="view"><div class="kv" style="padding:0 2px"><span>${hits.length} match${hits.length === 1 ? '' : 'es'} · ${esc(what)} <button type="button" class="btn-link btn-sm" style="min-height:0;padding:0 4px" data-hf-clear>clear</button></span><b>${searchTotal(hits)}</b></div>
+    ${hf.sort === 'high' || hf.sort === 'low' ? `<section class="card"><div class="list">${hits.map(row).join('')}</div></section>` : groups.map(g => `<section class="card"><button type="button" class="dayhead" data-detail="month|${g.key}" style="padding-top:0"><span>${esc(monthLabel(g.key))} · ${g.n}</span><span class="amt">${searchTotal(g.items)}</span></button><div class="list">${g.items.map(row).join('')}</div></section>`).join('')}</div>`;
 }

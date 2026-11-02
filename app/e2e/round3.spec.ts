@@ -166,6 +166,21 @@ test('an income entry opens its sheet, edits in place, deletes with undo', async
   await app.click('#sheet button[data-close]');
 });
 
+test('History search finds income beside expenses and shows what came in', async () => {
+  await app.tab('history');
+  await app.fill('#hist-search', 'salary');
+  const body = page().locator('#hist-body');
+  await expect(body.locator('.txrow[data-detail^="inc|"]')).toHaveCount(1);
+  await expect(body.locator('.txrow[data-detail^="tx|"]')).toHaveCount(0);
+  await expect(body.locator('.kv b')).toHaveText('+₹55,000');
+  await app.fill('#hist-search', new Date().toLocaleString('en-GB', { month: 'long' }).toLowerCase());
+  await expect(body.locator('.txrow[data-detail^="inc|"]')).toHaveCount(2);
+  await expect(body.locator('.txrow[data-detail^="tx|"]')).not.toHaveCount(0);
+  await expect(body.locator('.kv b')).toContainText('+₹57,000');
+  await app.fill('#hist-search', '');
+  await expect(page().locator('#h-month')).toHaveCount(1);
+});
+
 test('a recurring entry can be money in and is added this month with the auto tag', async () => {
   await app.tab('settings');
   await app.click('[data-detail="recur|new"]');

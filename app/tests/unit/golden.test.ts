@@ -148,6 +148,10 @@ describe('screens', () => {
     ui.histQuery = 'swiggy';
     await expect(rHist()).toMatchFileSnapshot(golden('history-search.html'));
   });
+  it('history with a search that matches income as well as expenses', async () => {
+    ui.histQuery = 'october';
+    await expect(rHist()).toMatchFileSnapshot(golden('history-search-income.html'));
+  });
   it('history sorted by amount and filtered to cards', async () => {
     hf.sort = 'high';
     hf.method = 'card';

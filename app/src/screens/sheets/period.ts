@@ -42,7 +42,7 @@ export function vehSheet(p: string[]): SheetView {
           ['Biggest', compact(items.slice().sort((a, b) => b.amount - a.amount)[0].amount)],
         ])}
       <h3>Paid with</h3><div class="list">${acctRows(items, total, 'cash', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'bank', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'upi', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'card', id => 'acct|' + k + '|' + id)}</div>
-      <h3>Fills</h3><div class="list">${items.map(txRow).join('')}</div>`
+      <h3>Fills</h3><div class="list">${items.map(t => txRow(t)).join('')}</div>`
       : '<div class="empty"><span>No fills this month.</span></div>',
   };
 }
@@ -61,7 +61,7 @@ export function daySheet(p: string[]): SheetView {
           ['Expenses', items.length],
           ['Biggest', compact(items.slice().sort((a, b) => b.amount - a.amount)[0].amount)],
         ])}
-      <h3>By category</h3><div class="list">${catRows(items, total, c => 'cat|' + k.slice(0, 7) + '|' + c)}</div><h3>Expenses</h3><div class="list">${items.map(txRow).join('')}</div>`
+      <h3>By category</h3><div class="list">${catRows(items, total, c => 'cat|' + k.slice(0, 7) + '|' + c)}</div><h3>Expenses</h3><div class="list">${items.map(t => txRow(t)).join('')}</div>`
       : '<div class="empty"><span>Nothing was spent on this day.</span></div>',
   };
 }
@@ -111,7 +111,7 @@ export function catAcctSheet(p: string[], kind: 'cat' | 'acct'): SheetView {
           }${extra}
       ${items.length ? (kind === 'cat' ? `<h3>Paid with</h3><div class="list">${acctRows(items, total, 'cash', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'bank', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'upi', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'card', id => 'acct|' + k + '|' + id)}</div>` : `<h3>By category</h3><div class="list">${catRows(items, total, c => 'cat|' + k + '|' + c)}</div>`) : ''}
       ${days ? `<div class="kv" style="margin-top:12px"><span>Heaviest day</span><b>${esc(shortDate(days.key))} · ${esc(money(days.v))}</b></div>` : ''}
-      ${items.length ? `<h3>Expenses</h3><div class="list">${items.map(txRow).join('')}</div>` : '<div class="hint" style="margin-top:12px">No expenses here this month.</div>'}`
+      ${items.length ? `<h3>Expenses</h3><div class="list">${items.map(t => txRow(t)).join('')}</div>` : '<div class="hint" style="margin-top:12px">No expenses here this month.</div>'}`
         : '<div class="empty"><span>No expenses here.</span></div>',
   };
 }

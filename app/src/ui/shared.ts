@@ -41,7 +41,7 @@ import { S } from '../data/storage';
 import { canShareFiles, ui } from './state';
 export const catIcon = (c: string) => glyph(CAT_ICON[String(c).toLowerCase()] || CAT_ICON.other, catColor(c));
 export const incIcon = () => glyph(INC_ICON, 'var(--good)');
-export function txRow(t: Tx, fresh?: unknown) {
+export function txRow(t: Tx, fresh = false) {
   return `<button type="button" class="txrow${fresh ? ' new' : ''}" data-detail="tx|${t.id}">
     ${catIcon(t.category)}
     <span class="name">${esc(t.category)}${t.note ? '<span class="note"> · ' + esc(t.note) + '</span>' : ''}${t.vehicleId && vehName(t.vehicleId) ? '<span class="note"> · ' + esc(vehName(t.vehicleId)) + '</span>' : ''}${t.recurringId ? '<span class="tag">auto</span>' : ''}<span class="small">${esc(shortDate(t.date))}${t.time ? ' · ' + esc(fmtTime(t.time)) : ''} · ${esc(payLabel(t))}</span></span>
@@ -144,7 +144,10 @@ export function dayGroups(tx: Tx[], oldest?: boolean) {
     .sort((a, b) => dir * b.key.localeCompare(a.key))
     .map(
       g =>
-        `<div class="daygroup"><button type="button" class="dayhead" data-detail="day|${g.key}"><span>${esc(longDate(g.key))}</span><span class="amt">${esc(money(g.v))}</span></button><div class="list">${g.items.sort(rows).map(txRow).join('')}</div></div>`,
+        `<div class="daygroup"><button type="button" class="dayhead" data-detail="day|${g.key}"><span>${esc(longDate(g.key))}</span><span class="amt">${esc(money(g.v))}</span></button><div class="list">${g.items
+          .sort(rows)
+          .map(t => txRow(t))
+          .join('')}</div></div>`,
     )
     .join('');
 }
