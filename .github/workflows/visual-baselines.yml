@@ -1,0 +1,32 @@
+# Records the visual-regression baselines on Linux so the check workflow can compare screenshots
+# there too. Run it from the Actions tab, download the "visual-baselines-linux" artifact, unzip it
+# into app/e2e/visual/ and commit the *-linux.png files.
+name: visual baselines
+
+on:
+  workflow_dispatch:
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test visual --update-snapshots
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines-linux
+          path: app/e2e/visual/*-linux.png
+          retention-days: 7

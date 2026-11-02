@@ -1,0 +1,57 @@
+import { norm } from './constants';
+/* ---------- directory of Indian banks and credit cards (RBI scheduled banks; popular card products) ---------- */
+export interface DirEntry{name:string;group:string;type:'bank'|'card';hay:string}
+export const BANK_DIR:[string,string[]][]=[
+ ['Public sector banks',['Bank of Baroda','Bank of India','Bank of Maharashtra','Canara Bank','Central Bank of India','Indian Bank','Indian Overseas Bank','Punjab & Sind Bank','Punjab National Bank','State Bank of India','UCO Bank','Union Bank of India']],
+ ['Private sector banks',['Axis Bank','Bandhan Bank','CSB Bank','City Union Bank','DCB Bank','Dhanlaxmi Bank','Federal Bank','HDFC Bank','ICICI Bank','IDBI Bank','IDFC FIRST Bank','IndusInd Bank','Jammu & Kashmir Bank','Karnataka Bank','Karur Vysya Bank','Kotak Mahindra Bank','Nainital Bank','RBL Bank','South Indian Bank','Tamilnad Mercantile Bank','YES Bank']],
+ ['Small finance banks',['AU Small Finance Bank','Capital Small Finance Bank','Equitas Small Finance Bank','ESAF Small Finance Bank','Fino Small Finance Bank','Jana Small Finance Bank','Shivalik Small Finance Bank','Slice Small Finance Bank','Suryoday Small Finance Bank','Ujjivan Small Finance Bank','Unity Small Finance Bank','Utkarsh Small Finance Bank']],
+ ['Payments banks',['Airtel Payments Bank','India Post Payments Bank','Jio Payments Bank','NSDL Payments Bank']],
+ ['Foreign banks',['Standard Chartered Bank','HSBC India','DBS Bank India','Deutsche Bank','Barclays Bank','SBM Bank India','Bank of America','JPMorgan Chase Bank','BNP Paribas','MUFG Bank','Sumitomo Mitsui Banking Corporation','Mizuho Bank','Doha Bank','Qatar National Bank','Emirates NBD','Mashreq Bank','First Abu Dhabi Bank','Shinhan Bank','Woori Bank','KEB Hana Bank','Bank of Ceylon','Credit Agricole','Societe Generale','Bank of China','Industrial & Commercial Bank of China']],
+ ['Co-operative banks',['Saraswat Co-operative Bank','Cosmos Co-operative Bank','SVC Co-operative Bank','TJSB Sahakari Bank','Abhyudaya Co-operative Bank','Bharat Co-operative Bank','NKGSB Co-operative Bank','Apna Sahakari Bank','Dombivli Nagari Sahakari Bank','Thane Bharat Sahakari Bank','Janata Sahakari Bank, Pune','Jalgaon Janata Sahakari Bank','Kalupur Commercial Co-operative Bank','Ahmedabad Mercantile Co-operative Bank','Nutan Nagarik Sahakari Bank','Mehsana Urban Co-operative Bank','Rajkot Nagarik Sahakari Bank',"Surat People's Co-operative Bank",'Andhra Pradesh Mahesh Co-operative Urban Bank','Kerala Bank (Kerala State Co-operative Bank)','Gujarat State Co-operative Bank','Maharashtra State Co-operative Bank','Telangana State Co-operative Apex Bank','Punjab State Co-operative Bank','Delhi State Co-operative Bank','Tamil Nadu State Apex Co-operative Bank','Karnataka State Co-operative Apex Bank']],
+ ['Regional rural banks',['Andhra Pradesh Grameena Bank','Arunachal Pradesh Rural Bank','Assam Gramin Bank','Bihar Gramin Bank','Chhattisgarh Gramin Bank','Gujarat Gramin Bank','Haryana Gramin Bank','Himachal Pradesh Gramin Bank','Jammu and Kashmir Grameen Bank','Jharkhand Gramin Bank','Karnataka Grameena Bank','Kerala Grameena Bank','Madhya Pradesh Gramin Bank','Maharashtra Gramin Bank','Manipur Rural Bank','Meghalaya Rural Bank','Mizoram Rural Bank','Nagaland Rural Bank','Odisha Grameen Bank','Puducherry Grama Bank','Punjab Gramin Bank','Rajasthan Gramin Bank','Tamil Nadu Grama Bank','Telangana Grameena Bank','Tripura Gramin Bank','Uttar Pradesh Gramin Bank','Uttarakhand Gramin Bank','West Bengal Gramin Bank']]
+];
+export const BANK_ALIAS:Record<string,string>={'State Bank of India':'sbi','Punjab National Bank':'pnb','Bank of Baroda':'bob','Bank of India':'boi','Central Bank of India':'cbi','Indian Overseas Bank':'iob','Union Bank of India':'ubi','Punjab & Sind Bank':'psb','Bank of Maharashtra':'bom mahabank','HDFC Bank':'hdfc','ICICI Bank':'icici','IDFC FIRST Bank':'idfc first','Kotak Mahindra Bank':'kotak 811','IndusInd Bank':'indusind','Jammu & Kashmir Bank':'jk j and k','Karur Vysya Bank':'kvb','Tamilnad Mercantile Bank':'tmb','City Union Bank':'cub','South Indian Bank':'sib','CSB Bank':'catholic syrian','DCB Bank':'development credit','IDBI Bank':'idbi','AU Small Finance Bank':'au bank','Equitas Small Finance Bank':'equitas','India Post Payments Bank':'ippb post office','Standard Chartered Bank':'stanc sc','HSBC India':'hsbc','DBS Bank India':'dbs','Airtel Payments Bank':'airtel','Jio Payments Bank':'jio','Slice Small Finance Bank':'slice north east','Unity Small Finance Bank':'pmc','Kerala Bank (Kerala State Co-operative Bank)':'kerala bank','Sumitomo Mitsui Banking Corporation':'smbc','JPMorgan Chase Bank':'jp morgan','Industrial & Commercial Bank of China':'icbc','Saraswat Co-operative Bank':'saraswat','Cosmos Co-operative Bank':'cosmos','SVC Co-operative Bank':'shamrao vithal','Kalupur Commercial Co-operative Bank':'kalupur','YES Bank':'yes'};
+export const CARD_DIR:[string,string,string[]][]=[
+ ['HDFC Bank','hdfc',['Millennia','MoneyBack+','Freedom','Regalia','Regalia Gold','Diners Club Black','Diners Club Black Metal','Diners Club Privilege','Infinia','Infinia Metal','Tata Neu Plus','Tata Neu Infinity','Swiggy','IndianOil','Marriott Bonvoy','6E Rewards IndiGo','Pixel Play','Pixel Go','Shoppers Stop','Biz Black']],
+ ['SBI Card','sbi state bank',['SimplyCLICK','SimplySAVE','Cashback','Prime','Elite','PULSE','Miles','Miles Prime','Miles Elite','BPCL','BPCL Octane','IRCTC Platinum','IRCTC Premier','Air India Signature','Club Vistara','Tata','Titan','Lifestyle Home Centre','Paytm','Max','Reliance','Aurum','Ola Money','Unnati']],
+ ['ICICI Bank','icici',['Amazon Pay','Coral','Rubyx','Sapphiro','Emeralde','Emeralde Private Metal','HPCL Super Saver','MakeMyTrip','MakeMyTrip Signature','Platinum Chip','Expressions','Adani One','Times Black','Manchester United','Mine']],
+ ['Axis Bank','axis',['Ace','Flipkart','Airtel','Magnus','Magnus for Burgundy','Atlas','Select','Privilege','Neo','My Zone','Reserve','Burgundy Private','IndianOil','Samsung','Rewards','Olympus','Aura','LIC Signature','Horizon','Scapia']],
+ ['Kotak Mahindra Bank','kotak',['811','811 #DreamDifferent','League Platinum','Royale Signature','Zen Signature','White','White Reserve','Myntra','PVR INOX','IndianOil','Mojo Platinum','Privy League Signature','Solitaire']],
+ ['IndusInd Bank','indusind',['Legend','Platinum Aura Edge','Pinnacle','EazyDiner','EazyDiner Platinum','Nexxt','Avios Visa Infinite','Tiger','Indulge','Samman','Platinum RuPay']],
+ ['American Express','amex',['Platinum Card','Platinum Reserve','Platinum Travel','Gold Card','Membership Rewards','SmartEarn']],
+ ['HSBC','hsbc',['Live+','Platinum','TravelOne','Premier','Privé Metal','Visa Platinum']],
+ ['Standard Chartered','stanc sc',['Ultimate','Smart','EaseMyTrip','Rewards','Platinum Rewards','Super Value Titanium','Priority Visa Infinite']],
+ ['RBL Bank','rbl',['ShopRite','World Safari','Icon','Insignia Preferred Banking','IndianOil Xtra','IRCTC','Paisabazaar Duet Plus','BankBazaar SaveMax','Edition Classic','Play','Cookies']],
+ ['YES Bank','yes',['Marquee','Reserv','Elite+','Select','Prosperity Rewards Plus','Ace','Paisabazaar PaisaSave','Wellness','Rio','Kiwi RuPay']],
+ ['AU Small Finance Bank','au bank',['Zenith','Zenith+','LIT','Altura','Altura Plus','Vetta','Xcite','ixigo','NOMO','InstaPay']],
+ ['IDFC FIRST Bank','idfc first',['Classic','Millennia','Select','Wealth','WOW','Power','Power+','Club Vistara','Ashva','Mayura','SWYP','Earn','LIC Select']],
+ ['Federal Bank','federal',['Celesta','Imperio','Signet','Scapia','Fi','Jupiter Edge','Visa Signature']],
+ ['BOBCARD','bank of baroda bob',['Eterna','Premier','Select','Easy','Varunah','Tiara','HPCL Energie','IRCTC','Snapdeal','Prime','Vikram']],
+ ['Punjab National Bank','pnb',['RuPay Select','RuPay Platinum','Visa Signature','Wave & Pay','Patanjali']],
+ ['Canara Bank','canara',['RuPay Select','RuPay Platinum','Visa Signature']],
+ ['Union Bank of India','ubi union',['RuPay Select','RuPay Platinum','Visa Signature','Uni-Carbon']],
+ ['Bank of India','boi',['RuPay Select','RuPay Platinum','Visa Platinum']],
+ ['Indian Bank','indian bank',['RuPay Select','RuPay Platinum','Visa Signature']],
+ ['Central Bank of India','cbi',['RuPay Select','RuPay Platinum','Visa Signature']],
+ ['IDBI Bank','idbi',['Winnings','Euphoria','Royale Signature','Imperium']],
+ ['South Indian Bank','sib',['SIB One','Platinum','Signature']],
+ ['DBS Bank India','dbs',['Vantage','Spark']],
+ ['OneCard','one card fpl',['OneCard Metal']],
+ ['Bank of Maharashtra','bom mahabank',['RuPay Select','RuPay Platinum']],
+ ['Indian Overseas Bank','iob',['RuPay Select','RuPay Platinum']],
+ ['UCO Bank','uco',['RuPay Select','RuPay Platinum']],
+ ['Jammu & Kashmir Bank','jk',['RuPay Select','Visa Platinum']],
+ ['Karur Vysya Bank','kvb',['RuPay Select','RuPay Platinum']],
+ ['Bandhan Bank','bandhan',['Max Plus','Max','Value','One','XClusive']],
+ ['City Union Bank','cub',['RuPay Select','Visa Signature']],
+ ['Karnataka Bank','karnataka',['RuPay Select']],
+ ['Tamilnad Mercantile Bank','tmb',['RuPay Select']],
+ ['Saraswat Co-operative Bank','saraswat',['Platinum','RuPay Select']],
+ ['Equitas Small Finance Bank','equitas',['Platinum','RuPay Select']],
+ ['Utkarsh Small Finance Bank','utkarsh',['RuPay Select']],
+ ['Dhanlaxmi Bank','dhanlaxmi',['Platinum']]
+];
+export const BANK_ENTRIES:DirEntry[]=[];BANK_DIR.forEach(([group,names])=>names.forEach(n=>BANK_ENTRIES.push({name:n,group,type:'bank' as const,hay:norm(n)+' '+(BANK_ALIAS[n]||'')+' '+norm(group)})));
+export const CARD_ENTRIES:DirEntry[]=[];CARD_DIR.forEach(([issuer,alias,prods])=>{prods.forEach(p=>CARD_ENTRIES.push({name:issuer+' '+p,group:issuer,type:'card' as const,hay:norm(issuer+' '+p)+' '+alias+' credit card'}));CARD_ENTRIES.push({name:issuer+' credit card (other)',group:issuer,type:'card' as const,hay:norm(issuer)+' '+alias+' other credit card any'});});
+export const DIR:Record<'bank'|'card',DirEntry[]>={bank:BANK_ENTRIES,card:CARD_ENTRIES};
+

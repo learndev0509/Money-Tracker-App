@@ -1,0 +1,40 @@
+const {chromium}=require('playwright');
+const SHOTS=''+__dirname+'/shots';require('fs').mkdirSync(SHOTS,{recursive:true});
+const FILE='file://'+require('path').resolve(__dirname,'../index.html');
+const results=[];const ok=(n,c,x)=>results.push((c?'PASS ':'FAIL ')+n+(x?' — '+x:''));const w=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+  const browser=await chromium.launch();
+  const ctx=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  const page=await ctx.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto(FILE);await w(300);
+  ok('welcome shows on first run',!(await page.$eval('#welcome',e=>e.hidden)));
+  ok('welcome carries brand + app name',/Money tracker/.test(await page.textContent('#welcome'))&&/Zestera/.test(await page.textContent('#welcome')));
+  await page.screenshot({path:SHOTS+'/01-welcome.png',fullPage:true});
+  await page.click('#w-go');await w(200);
+  ok('empty first name blocked',!(await page.$eval('#welcome',e=>e.hidden))&&/first name/.test(await page.textContent('#toast')));
+  await page.fill('#w-first','Shreya');await page.fill('#w-last','Sanghavi');await page.press('#w-last','Enter');await w(300);
+  ok('welcome dismissed, dashboard shown',await page.$eval('#welcome',e=>e.hidden)&&await page.$eval('nav .tab.on',e=>e.dataset.go)==='dashboard');
+  const hi=await page.textContent('.g-hi');
+  ok('greeting has time of day and first name',/^Good (morning|afternoon|evening), Shreya!$/.test(hi),hi);
+  ok('avatar initials',(await page.textContent('.avatar'))==='SS');
+  await page.screenshot({path:SHOTS+'/02-dashboard-greeting.png'});
+  await page.reload();await w(300);
+  ok('welcome does not show again',await page.$eval('#welcome',e=>e.hidden));
+  await page.click('.avatar');await w(200);
+  ok('avatar opens settings with profile',/Profile/.test(await page.textContent('#main'))&&(await page.inputValue('input[data-profile="firstName"]'))==='Shreya');
+  await page.fill('input[data-profile="firstName"]','Shreyaa');await page.dispatchEvent('input[data-profile="firstName"]','change');await w(200);
+  await page.click('nav [data-go="dashboard"]');await w(200);
+  ok('renamed greeting',/Shreyaa!/.test(await page.textContent('.g-hi')));
+  // old storage key is picked up
+  await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('money-tracker.v1'));localStorage.removeItem('money-tracker.v1');localStorage.setItem('rupee-ledger.v1',JSON.stringify(d));});
+  await page.reload();await w(300);
+  ok('old key migrated (no welcome, greeting intact)',await page.$eval('#welcome',e=>e.hidden)&&/Shreyaa/.test(await page.textContent('.g-hi')));
+  // PIN + welcome ordering: lock sits above
+  await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('money-tracker.v1'));d.profile={firstName:'',lastName:''};localStorage.setItem('money-tracker.v1',JSON.stringify(d));});
+  await page.reload();await w(300);
+  ok('no name after restore -> welcome again',!(await page.$eval('#welcome',e=>e.hidden)));
+  ok('no horizontal scroll on welcome',await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));
+  await page.emulateMedia({colorScheme:'dark'});await page.screenshot({path:SHOTS+'/03-welcome-dark.png',fullPage:true});
+  ok('no page errors',errors.length===0,errors.join('|'));
+  console.log(results.join('\n'));await browser.close();
+})().catch(e=>{console.error('CRASH',e);process.exit(1);});

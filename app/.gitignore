@@ -1,0 +1,8 @@
+node_modules/
+dist/
+e2e/.generated/
+e2e/shots/
+test-results/
+playwright-report/
+tests/shots/
+*.log

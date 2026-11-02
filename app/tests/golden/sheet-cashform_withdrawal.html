@@ -1,0 +1,9 @@
+{"title":"Log a cash withdrawal","sub":"From an ATM or a bank counter","tall":true,"focus":"#e-amount"}
+<div class="form">
+    <div class="amount-in"><span class="cur">₹</span><input id="e-amount" type="text" inputmode="decimal" placeholder="0" value="" aria-label="Amount" autocomplete="off"><button type="button" class="calc-btn" data-calc="sheet" aria-label="Calculator"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg></button></div>
+    <div><button type="button" class="picker" data-open-pick="bank" data-ctx="cash"><span class="pk"><span class="pk-l">Bank</span><span class="pk-v ph">Search all banks…</span></span><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button><div class="chips"><button type="button" class="chip " data-acct="a-hdfc"><span class="t">HDFC Bank</span></button></div></div>
+    <div class="two"><label class="f">Date<input id="e-date" type="date" value="2026-10-30" max="2026-10-30"></label><label class="f">Time<input id="e-time" type="time" value="18:30"></label></div>
+    <label class="f">Note (optional)<input id="e-note" type="text" value="" placeholder="e.g. ATM near office" maxlength="60"></label>
+    <button type="button" class="btn-primary" data-save-cash>Log withdrawal</button>
+    <button type="button" data-back>Cancel</button>
+  </div>

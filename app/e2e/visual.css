@@ -1,0 +1,3 @@
+/* Applied only while visual.spec.ts captures full pages: a fixed tab bar would be painted wherever
+   the viewport happened to be, so it is hidden there (dashboard-top keeps it, at viewport size). */
+nav { visibility: hidden; }

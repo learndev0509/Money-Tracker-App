@@ -1,0 +1,40 @@
+{
+  "profile": { "firstName": "Shreya", "lastName": "Sanghavi" },
+  "accounts": [
+    { "id": "cash", "name": "Cash", "type": "cash", "archived": false, "statementDay": null },
+    { "id": "a-hdfc", "name": "HDFC Bank", "type": "bank", "archived": false, "statementDay": null },
+    { "id": "a-regalia", "name": "HDFC Bank Regalia Gold", "type": "card", "archived": false, "statementDay": 15 },
+    { "id": "a-old", "name": "Old card", "type": "card", "archived": true, "statementDay": 40 }
+  ],
+  "categories": ["Food", "Groceries", "Transport", "Fuel", "Shopping", "Bills", "Rent", "Health", "Entertainment", "Other", "Kids"],
+  "tx": [
+    { "id": "t1", "amount": 120, "category": "Food", "accountId": "cash", "method": "cash", "date": "2026-10-02", "time": "09:12", "note": "Chai", "recurringId": "", "vehicleId": "" },
+    { "id": "t2", "amount": 3999.004, "category": "Shopping", "accountId": "a-regalia", "method": "card", "date": "2026-10-05", "time": "21:30", "note": "Shoes", "recurringId": "", "vehicleId": "" },
+    { "id": "t3", "amount": 2500, "category": "Fuel", "accountId": "a-regalia", "method": "card", "date": "2026-10-20", "time": "08:01", "note": "", "recurringId": "", "vehicleId": "v1" },
+    { "id": "t4", "amount": 450, "category": "Groceries", "accountId": "a-hdfc", "date": "2026-10-21", "time": "19:45", "note": "Swiggy Instamart" },
+    { "id": "t5", "amount": 80, "category": "Food", "accountId": "a-hdfc", "method": "upi", "date": "2026-10-22", "time": "13:00", "note": "Swiggy", "recurringId": "", "vehicleId": "" },
+    { "id": "t6", "amount": 15000, "category": "Rent", "accountId": "a-hdfc", "method": "bank", "date": "2026-10-01", "time": "", "note": "Rent", "recurringId": "r1", "vehicleId": "" },
+    { "id": "bad", "amount": 10, "category": "Food", "accountId": "cash", "method": "cash", "date": "20-10-2026", "time": "", "note": "", "recurringId": "", "vehicleId": "" },
+    { "id": "t7", "amount": 300, "category": "Food", "accountId": "cash", "method": "cash", "date": "2026-09-28", "time": "20:00", "note": "Dinner", "recurringId": "", "vehicleId": "" }
+  ],
+  "income": [
+    { "id": "i1", "amount": 85000, "category": "Salary", "accountId": "a-hdfc", "method": "bank", "date": "2026-10-01", "time": "", "note": "October salary", "recurringId": "r2" },
+    { "id": "i2", "amount": 500, "category": "Gift", "accountId": "cash", "method": "cash", "date": "2026-10-10", "time": "18:00", "note": "", "recurringId": "" },
+    { "id": "i3", "amount": 0, "category": "Refund", "accountId": "a-hdfc", "method": "bank", "date": "2026-10-11", "time": "", "note": "", "recurringId": "" }
+  ],
+  "cashIn": [
+    { "id": "c1", "kind": "adjust", "amount": 1000, "accountId": "", "date": "2026-10-01", "time": "08:00", "note": "Counted wallet" },
+    { "id": "c2", "kind": "withdrawal", "amount": 2000, "accountId": "a-hdfc", "date": "2026-10-03", "time": "10:00", "note": "ATM" },
+    { "id": "c3", "kind": "withdrawal", "amount": 0, "accountId": "a-hdfc", "date": "2026-10-04", "time": "10:00", "note": "" }
+  ],
+  "budgets": { "Food": 5000, "Shopping": "4000", "Fuel": 0, "Rent": -1 },
+  "recurring": [
+    { "id": "r1", "kind": "expense", "amount": 15000, "category": "Rent", "method": "bank", "accountId": "a-hdfc", "day": 1, "note": "Rent", "active": true, "since": "2026-08", "lastApplied": "2026-10" },
+    { "id": "r2", "kind": "income", "amount": 85000, "category": "Salary", "method": "upi", "accountId": "a-hdfc", "day": 1, "note": "Salary", "active": true, "since": "2026-10", "lastApplied": "2026-10" },
+    { "id": "r3", "kind": "expense", "amount": 0, "category": "Bills", "method": "cash", "accountId": "cash", "day": 5, "note": "", "active": true, "since": "", "lastApplied": "" }
+  ],
+  "vehicles": [{ "id": "v1", "name": "Swift" }, { "id": "v2", "name": "   " }],
+  "meta": { "lastBackup": 1761800000000, "startView": "add", "theme": "dark", "appVersion": "1.8.0", "alerts": true, "junk": 1 },
+  "flags": { "v2": true },
+  "pin": "stale-hash"
+}

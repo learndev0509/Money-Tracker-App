@@ -1,0 +1,15 @@
+# dependencies and build output
+node_modules/
+app/dist/
+
+# test output (baselines in app/e2e/visual/ are tracked)
+app/test-results/
+app/playwright-report/
+app/e2e/.generated/
+app/e2e/shots/
+tests/shots/
+
+# local editor and OS files
+.DS_Store
+Thumbs.db
+*.log

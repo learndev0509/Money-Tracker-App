@@ -1,0 +1,16 @@
+{
+  "accounts": [
+    { "id": "cash", "name": "Cash", "type": "cash" },
+    { "id": "b1", "name": "State Bank of India", "type": "bank" },
+    { "id": "k1", "name": "SBI Card SimplyCLICK", "type": "card", "statementDay": "20" }
+  ],
+  "categories": ["Food", "Groceries", "Transport", "Shopping", "Bills", "Rent", "Health", "Entertainment", "Other"],
+  "tx": [
+    { "id": "x1", "amount": "250", "category": "Food", "accountId": "cash", "date": "2026-09-14", "time": "12:30", "note": "Lunch" },
+    { "id": "x2", "amount": 1200, "category": "Shopping", "accountId": "k1", "date": "2026-09-15", "time": "bad", "note": "" },
+    { "id": "x3", "amount": 600, "category": "Bills", "accountId": "b1", "date": "2026-09-16", "note": "Electricity" }
+  ],
+  "budgets": { "Food": 4000 },
+  "profile": { "firstName": "Priya" },
+  "pin": "1a2b3c"
+}

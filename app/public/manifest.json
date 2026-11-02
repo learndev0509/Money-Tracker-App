@@ -1,0 +1,21 @@
+{
+  "name": "Money tracker",
+  "short_name": "Money",
+  "description": "Money tracker by Zestera",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f2f4f1",
+  "theme_color": "#0f625e",
+  "icons": [
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
