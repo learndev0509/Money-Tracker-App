@@ -6,7 +6,7 @@ import { vault } from './data/crypto';
 import { S, loadInitial } from './data/storage';
 import { applyRecurring } from './queries/recurring';
 import { ui } from './ui/state';
-import { applyTheme, go, moveTabInd, render, updateClock } from './ui/render';
+import { applyStoredTheme, applyTheme, go, moveTabInd, render, updateClock } from './ui/render';
 import { bindEvents } from './events';
 import { bindLock, lock } from './screens/lock';
 import { bindWelcome, renderWelcomeInstall, showWelcome } from './screens/welcome';
@@ -57,7 +57,9 @@ try {
 } catch (e) {
   /* unsupported */
 }
-applyTheme();
+// Locked, the ledger in memory is empty: applying its theme would drop the choice the lock screen needs.
+if (vault.lockedBlob) applyStoredTheme();
+else applyTheme();
 window.addEventListener('resize', moveTabInd);
 setInterval(updateClock, 15000);
 if (vault.lockedBlob) lock();

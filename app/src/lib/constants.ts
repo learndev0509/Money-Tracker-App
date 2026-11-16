@@ -8,6 +8,8 @@ export const KEY = 'money-tracker.v1',
   SNAP_KEY = 'money-tracker.v1.snapshots',
   SNAPS = 3;
 export const ERR_KEY = 'money-tracker.v1.errors';
+/** A plain copy of the Light/Dark choice, readable while the ledger is still locked. */
+export const THEME_KEY = 'money-tracker.v1.theme';
 export const VIEWS = ['add', 'dashboard', 'history', 'settings'] as const;
 export type View = (typeof VIEWS)[number];
 export const isView = (x: unknown): x is View => (VIEWS as readonly unknown[]).includes(x);

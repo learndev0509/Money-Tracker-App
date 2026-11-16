@@ -1,16 +1,37 @@
 import { View } from '../lib/constants';
 import { S } from '../data/storage';
 import { ui } from './state';
-import { DAYS, MONTHS, el, reduceMotion } from '../lib/constants';
+import { DAYS, MONTHS, THEME_KEY, el, reduceMotion } from '../lib/constants';
 import { rAdd } from '../screens/add';
 import { rDash } from '../screens/dashboard';
 import { rHist } from '../screens/history';
 import { rSettings } from '../screens/settings';
 import { updateBadge } from './notify';
 import { fmtTime, money, timeKey } from '../lib/dates';
+/**
+ * The Light/Dark choice lives in the ledger, which a PIN encrypts, so the lock screen cannot read it.
+ * A plain copy under THEME_KEY (just 'light' or 'dark', nothing private) lets the lock screen match.
+ */
 export function applyTheme() {
   const t = S.meta.theme;
   if (t) document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+  try {
+    if (t) localStorage.setItem(THEME_KEY, t);
+    else localStorage.removeItem(THEME_KEY);
+  } catch (e) {
+    /* storage unavailable: the lock screen follows the phone */
+  }
+}
+/** At boot with the ledger still locked: use the copy of the choice instead of the empty ledger's. */
+export function applyStoredTheme() {
+  let t: string | null = null;
+  try {
+    t = localStorage.getItem(THEME_KEY);
+  } catch (e) {
+    /* storage unavailable */
+  }
+  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
   else delete document.documentElement.dataset.theme;
 }
 export function go(v: View) {

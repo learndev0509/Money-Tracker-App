@@ -161,6 +161,7 @@ export function eraseAll() {
     /* nothing to remove */
   }
   setLedger(defaults());
+  applyTheme();
   setSavedN(0);
   vault.masterKey = null;
   vault.masterRaw = null;
