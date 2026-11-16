@@ -173,8 +173,8 @@ export function cashSection(k: string) {
   const spent = sum(txIn(k).filter(t => methodOf(t) === 'cash'));
   return `<section class="cashcard"><div class="card-head"><h2>Cash in hand</h2><span class="sub">${esc(money(sum(wd)))} withdrawn · ${esc(money(spent))} spent${k === thisMonth() ? ' this month' : ' in ' + esc(MON[+k.slice(5, 7) - 1])}</span></div>
     <div class="cash-big ${bal < 0 ? 'neg' : ''}">${esc(money(bal))}</div>
-    ${bal < 0 ? '<div class="hint">Below zero: more cash was spent than was added. Add the cash you have, or log a withdrawal, to correct it.</div>' : ''}
-    <div class="cash-row"><button type="button" data-detail="cashform|withdrawal">Log a withdrawal</button><button type="button" data-detail="cashform|adjust">Add cash in hand</button><button type="button" class="btn-ghost" data-detail="cash|list">History</button></div></section>`;
+    ${bal < 0 ? '<div class="hint">Below zero: more cash was spent than was added. Add the cash you have or log a withdrawal; or count your cash and use Correct total.</div>' : ''}
+    <div class="cash-row"><button type="button" data-detail="cashform|withdrawal">Log a withdrawal</button><button type="button" data-detail="cashform|adjust">Add cash in hand</button><button type="button" class="btn-ghost" data-detail="cashform|correct">Correct total</button><button type="button" class="btn-ghost" data-detail="cash|list">History</button></div></section>`;
 }
 /** The steps for this phone: Safari's Share menu on iPhone, Chrome's menu (or its own Install prompt) on Android. */
 export function installStepsHTML() {

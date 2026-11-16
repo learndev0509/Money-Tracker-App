@@ -7,7 +7,7 @@ import { Dated, sortTx } from '../queries/ledger';
 /** A record being edited in a sheet: amount as typed, plus whichever fields that kind of record has. */
 export interface Draft {
   id?: string;
-  kind?: 'expense' | 'income' | 'withdrawal' | 'adjust';
+  kind?: 'expense' | 'income' | 'withdrawal' | 'adjust' | 'correct';
   amount: string;
   category: string;
   method: Method;

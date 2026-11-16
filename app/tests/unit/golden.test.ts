@@ -41,6 +41,7 @@ const SHEETS = [
   'cash|list',
   'cashform|withdrawal',
   'cashform|adjust',
+  'cashform|correct',
   'incomeform|new',
   'incomeform|i1',
   'edit|t2',

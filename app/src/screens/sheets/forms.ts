@@ -47,18 +47,29 @@ export function incomeFormHTML(st: Draft) {
 export function cashEffect(st: Draft) {
   const now = cashBalance(),
     amt = parseAmt(st.amount);
+  if (st.kind === 'correct') {
+    // "Correct total": the amount typed is what is really there; saving records the difference.
+    const says = 'The app says ' + money(now) + '. ';
+    if (st.amount.trim() === '' || !(amt >= 0)) return says + 'Enter the cash you actually have.';
+    const d = Math.round((amt - now) * 100) / 100;
+    return (
+      says +
+      (d > 0 ? 'This adds ' + money(d) + '.' : d < 0 ? 'This takes ' + money(-d) + ' off.' : 'That already matches.')
+    );
+  }
   return amt > 0
     ? 'Adds to the ' + money(now) + ' in hand: ' + money(now + amt) + ' after this.'
     : 'Adds to the ' + money(now) + ' in hand. Enter cash you were given or already had.';
 }
 export function cashFormHTML(st: Draft) {
-  const isAdj = st.kind === 'adjust';
+  const isAdj = st.kind === 'adjust',
+    isFix = st.kind === 'correct';
   return `<div class="form">
     <div class="amount-in"><span class="cur">₹</span><input id="e-amount" type="text" inputmode="decimal" placeholder="0" value="${esc(st.amount)}" aria-label="Amount" autocomplete="off">${CALC_BTN('sheet')}</div>
-    ${isAdj ? `<div class="hint" id="cash-effect">${esc(cashEffect(st))}</div>` : `<div>${payBlockHTML(st, 'cash', 'bank')}</div>`}
-    <div class="two"><label class="f">Date<input id="e-date" type="date" value="${esc(st.date)}" max="${today()}"></label><label class="f">Time<input id="e-time" type="time" value="${esc(st.time)}"></label></div>
-    <label class="f">Note (optional)<input id="e-note" type="text" value="${esc(st.note)}" placeholder="${isAdj ? 'e.g. Given by a relative' : 'e.g. ATM near office'}" maxlength="60"></label>
-    <button type="button" class="btn-primary" data-save-cash>${isAdj ? 'Add cash in hand' : 'Log withdrawal'}</button>
+    ${isAdj || isFix ? `<div class="hint" id="cash-effect">${esc(cashEffect(st))}</div>` : `<div>${payBlockHTML(st, 'cash', 'bank')}</div>`}
+    ${isFix ? '' : `<div class="two"><label class="f">Date<input id="e-date" type="date" value="${esc(st.date)}" max="${today()}"></label><label class="f">Time<input id="e-time" type="time" value="${esc(st.time)}"></label></div>`}
+    <label class="f">Note (optional)<input id="e-note" type="text" value="${esc(st.note)}" placeholder="${isFix ? 'e.g. Counted my wallet' : isAdj ? 'e.g. Given by a relative' : 'e.g. ATM near office'}" maxlength="60"></label>
+    <button type="button" class="btn-primary" data-save-cash>${isFix ? 'Correct the total' : isAdj ? 'Add cash in hand' : 'Log withdrawal'}</button>
     <button type="button" data-back>Cancel</button>
   </div>`;
 }

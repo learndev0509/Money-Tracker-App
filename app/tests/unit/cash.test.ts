@@ -27,8 +27,8 @@ const spend = (date: string, time: string, amount: number): Tx => ({
   recurringId: '',
   vehicleId: '',
 });
-const draft = (amount: string): Draft => ({
-  kind: 'adjust',
+const draft = (amount: string, kind: Draft['kind'] = 'adjust'): Draft => ({
+  kind,
   amount,
   category: '',
   method: 'bank',
@@ -63,5 +63,23 @@ describe('adding cash in hand', () => {
     expect(cashEffect(draft(''))).toBe('Adds to the ₹800 in hand. Enter cash you were given or already had.');
     expect(cashEffect(draft('2000'))).toBe('Adds to the ₹800 in hand: ₹2,800 after this.');
     expect(cashEffect(draft('1000+500'))).toBe('Adds to the ₹800 in hand: ₹2,300 after this.');
+  });
+  it('a correction says the difference between what the app says and what was counted', () => {
+    S.cashIn.push(added('2026-10-01', '10:00', 5000));
+    S.tx.push(spend('2026-10-20', '12:00', 4200));
+    const fix = (amount: string) => cashEffect(draft(amount, 'correct'));
+    expect(fix('')).toBe('The app says ₹800. Enter the cash you actually have.');
+    expect(fix('300')).toBe('The app says ₹800. This takes ₹500 off.');
+    expect(fix('1000')).toBe('The app says ₹800. This adds ₹200.');
+    expect(fix('800')).toBe('The app says ₹800. That already matches.');
+    expect(fix('0')).toBe('The app says ₹800. This takes ₹800 off.');
+  });
+  it('a correction is stored as a difference, so it takes cash off without replacing anything', () => {
+    S.cashIn.push(added('2026-10-01', '10:00', 5000), added('2026-11-01', '10:00', -500));
+    S.tx.push(spend('2026-10-20', '12:00', 4200));
+    expect(cashBalance()).toBe(300);
+    // cash added after the correction still adds to it
+    S.cashIn.push(added('2026-11-05', '10:00', 2000));
+    expect(cashBalance()).toBe(2300);
   });
 });
