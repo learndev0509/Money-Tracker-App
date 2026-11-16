@@ -1,7 +1,9 @@
 Money tracker by Zestera - self-hosted copy (version 1.2.6, 30 Oct 2026; numbered 1.8.0 until 16 Nov 2026)
 Settings shows the version; the change history is in the .md document.
 
-Upload this whole folder to any static host (GitHub Pages, Cloudflare Pages, Azure Static Web App, Netlify).
+Deploy the module build: on Netlify, link the GitHub repository and netlify.toml builds app/ and publishes app/dist
+(or drag the app/dist folder onto the site's Deploys page). Uploading this root folder deploys only the old
+single-file copy.
 Then on your phone: iPhone - open the site in Safari -> Share -> Add to Home Screen;
 Android - open it in Chrome -> menu -> Add to Home screen (or tap Install app when the app offers it).
 
