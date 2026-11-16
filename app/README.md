@@ -14,7 +14,7 @@ npm run format              Prettier over the whole folder (format:check only re
 npm run lint                ESLint: recommended JS/TS rules plus the Playwright rules for e2e/
 npm run typecheck           tsc --noEmit
 npm test                    Vitest unit tests (tests/unit)
-npm run build               production build into dist/ (deploy that folder)
+npm run build               production build into dist/ (what Netlify builds and publishes)
 npm run preview             serve dist/ on http://127.0.0.1:4173
 npm run e2e                 build dist/, serve it, and run the browser suites (Playwright Test, e2e/*.spec.ts)
 npm run e2e:report          open the HTML report of the last run (traces for any failure)
@@ -169,7 +169,9 @@ Baselines are named per platform; a machine on another OS records its own set on
 4. `npm run check` (format, lint, type check, unit tests, build, browser suites). Accept intended
    golden changes with `npx vitest run -u` and intended visual changes with
    `npm run e2e -- visual --update-snapshots`, and commit them with the change.
-5. Deploy `dist/` to the static host. Existing phones pick up `index.html` on the next online open.
+5. Commit and push to `main`. Netlify is linked to the repository and publishes `dist/` from that push
+   (`../netlify.toml`), without waiting for the GitHub check, so step 4 comes first. Existing phones
+   pick up `index.html` on the next online open.
 
 ## 1.2.7, the first release from this folder
 
