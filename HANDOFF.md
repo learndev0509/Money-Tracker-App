@@ -119,8 +119,9 @@ node features.test.js && node welcome.test.js && node round2.test.js && node rou
 | round3 | UPI end to end, income end to end incl. recurring salary |
 | safety | snapshots and restore, undoable wipe, encryption lifecycle incl. the pre-1.2.6 `enc:1` upgrade, erase, iOS install card |
 | ui | glyphs, save morph, hero spark, sheets, theme, nav, calculator, Trends, version chip, PDF export, local fonts / zero external requests, privacy and terms, share-to-Files backup |
-| secure | served from a fake `https://money.test` origin via Playwright routing with a CDP virtual authenticator (`hasPrf`): Face ID enrol/unlock, PIN fallback, PIN change keeps the Face wrapper, fail-closed without the passkey, service-worker precache over https, budget notifications and badge via stubbed `Notification`/`setAppBadge` |
+| secure | served from a fake `https://money.test` origin via Playwright routing with a CDP virtual authenticator (`hasPrf`): Face ID enrol/unlock, PIN fallback, PIN change keeps the Face wrapper, fail-closed without the passkey, service-worker precache over https, budget notifications and badge via stubbed `Notification`/`setAppBadge`, the recurring-entry toast and notification with its own switch (and Notify me bringing the phone-wide switch back) |
 | fuel | vehicles, fuel toggle/close/clear (the card stands in for the manual form), cash / UPI / card fills, bill hints, Dashboard Fuel card |
+| mileage | odometer and litres on the Fuel card, the hint from one reading to the next, mileage on the Dashboard, the vehicle sheet and the expense sheet |
 
 261 checks at 1.2.6. The suites wait fixed milliseconds in places; `features` uses `toastHas()` for the slow (PBKDF2) PIN paths. A lone intermittent failure that passes on re-run is harness timing, not the app.
 

@@ -294,6 +294,13 @@ test('alerts can be turned off and stored; removing the over budget clears the b
   await app.click('[data-alerts="off"]');
   expect(await app.flat('#main')).toMatch(/AlertsonthisphoneOff/);
   await app.expectStored(d => d.meta.alerts === false);
+  // Notify me under Recurring brings the phone-wide switch back and says so
+  expect(await app.flat('#main')).toMatch(/TellmewhenanentryisaddedOff/);
+  await app.click('[data-recur-alerts="on"]');
+  await app.expectToast(/Alerts on again: added entries and budget warnings/);
+  await app.expectStored(d => d.meta.alerts === undefined && d.meta.recurAlerts === undefined, 'both switches on');
+  await app.click('[data-alerts="off"]');
+  await app.expectStored(d => d.meta.alerts === false);
   await app.click('[data-del-budget="Food"]');
   await expect.poll(badge).toBe(0);
   await page().evaluate(() => {

@@ -71,11 +71,13 @@ export async function setRecurAlerts(on: boolean) {
     render(false);
     return;
   }
+  // the phone-wide switch (Settings → Budgets) covers this too, so turning it back on here is said out loud
+  const wereOff = S.meta.alerts === false;
   delete S.meta.recurAlerts;
   delete S.meta.alerts;
   save();
   render(false);
-  toast('You will be told when an entry is added');
+  toast(wereOff ? 'Alerts on again: added entries and budget warnings' : 'You will be told when an entry is added');
 }
 /** One notification naming every entry the recurring rules just added. */
 export function notifyRecurring(added: AddedEntry[]) {

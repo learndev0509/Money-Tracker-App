@@ -52,6 +52,8 @@ test('the link opens odometer and litres, and closes them again', async () => {
 test('the first reading is stored and promises mileage at the next fill', async () => {
   await amount().fill('1030');
   await odo().fill('5000');
+  // without the litres this reading could never give a mileage, so the hint asks for them
+  await expect(hint()).toHaveText('First reading for Swift. Add the litres too, or the next fill cannot show mileage.');
   await litres().fill('10');
   await expect(hint()).toHaveText('First reading for Swift. Mileage shows at the next fill · ₹103 a litre');
   await saveBtn().click();

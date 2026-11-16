@@ -93,7 +93,8 @@ export function pickVehicle(id: string) {
     fuel.method = 'cash';
     fuel.accountId = 'cash';
   } else if (lf && la && !la.archived) {
-    fuel.method = acctTypeOf(lf.method) === la.type ? lf.method : la.type;
+    // the card knows Cash, UPI and Card only, so a fill edited onto a bank account comes back as UPI
+    fuel.method = la.type === 'card' ? 'card' : 'upi';
     fuel.accountId = la.id;
   } else {
     const c = acct(form.lastCard);
@@ -194,7 +195,9 @@ export function mileageHint() {
     rate = litres && amt > 0 ? ' · ' + money(amt / litres) + ' a litre' : '';
   if (!open)
     return odo
-      ? 'First reading for ' + vehName(fuel.vehicleId) + '. Mileage shows at the next fill' + (rate || '.')
+      ? litres
+        ? 'First reading for ' + vehName(fuel.vehicleId) + '. Mileage shows at the next fill' + (rate || '.')
+        : 'First reading for ' + vehName(fuel.vehicleId) + '. Add the litres too, or the next fill cannot show mileage.'
       : 'Optional. Enter the odometer reading and the litres at each fill; mileage shows from the second fill' +
           (rate || '.');
   const from = open.from.odo || 0,
