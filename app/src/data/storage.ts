@@ -10,6 +10,7 @@ import {
   decryptText,
   encryptText,
   isEncrypted,
+  isEncryptedBlob,
   packStore,
   parseBlob,
   requireKey,
@@ -20,8 +21,11 @@ import { defaults, migrate, type Ledger } from './model';
 
 /** The ledger. Read it anywhere; replace it only through setLedger() so every module sees the new object. */
 export let S: Ledger = defaults();
+/** Goes up on every save() and setLedger(), so a cache keyed on it goes stale exactly when the ledger changes. */
+export let saves = 0;
 export function setLedger(d: Ledger) {
   S = d;
+  saves++;
 }
 
 export function readStored() {
@@ -61,10 +65,20 @@ export function snapshots(): Snapshot[] {
     return [];
   }
 }
+/** The day of the newest automatic copy, so a save after the first of the day does not re-read every copy to find out. */
+let snapDay = '';
+export const forgetSnapshotDay = () => {
+  snapDay = '';
+};
 export function keepSnapshot(raw: string, n: number) {
-  const list = snapshots(),
-    day = today();
-  if (list.length && list[0].day === day) return;
+  const day = today();
+  if (snapDay === day) return;
+  const list = snapshots();
+  if (list.length && list[0].day === day) {
+    snapDay = day;
+    return;
+  }
+  snapDay = day;
   list.unshift({ day, raw, n });
   try {
     localStorage.setItem(SNAP_KEY, JSON.stringify(list.slice(0, SNAPS)));
@@ -87,6 +101,7 @@ export function queueWrite(fn: () => unknown) {
 }
 export function save() {
   S.meta.appVersion = APP_VERSION;
+  saves++;
   const json = JSON.stringify(S),
     n = S.tx.length;
   queueWrite(async () => {
@@ -128,9 +143,10 @@ export const storedFace = (): FaceWrap | null => {
 
 /** Reads storage once at boot. An encrypted store leaves S at defaults until the lock screen unwraps it. */
 export function loadInitial() {
-  const stored = readStored();
-  vault.lockedBlob = isEncrypted(stored);
-  S = vault.lockedBlob ? defaults() : parseStored(stored);
+  // the stored blob is parsed once: to see whether it is encrypted, and if not, as the ledger itself
+  const o = parseBlob(readStored());
+  vault.lockedBlob = isEncryptedBlob(o);
+  S = vault.lockedBlob || !o ? defaults() : migrate(o);
   savedN = S.tx.length;
   return S;
 }

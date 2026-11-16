@@ -57,10 +57,8 @@ export const parseBlob = (raw: string): Raw | null => {
     return null;
   }
 };
-export const isEncrypted = (raw: string) => {
-  const o = parseBlob(raw);
-  return !!(o && (o.enc === 1 || o.enc === 2) && o.iv && o.ct);
-};
+export const isEncryptedBlob = (o: Raw | null) => !!(o && (o.enc === 1 || o.enc === 2) && o.iv && o.ct);
+export const isEncrypted = (raw: string) => isEncryptedBlob(parseBlob(raw));
 export const importAes = (raw: BufferSource) =>
   crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
 export async function deriveKey(pin: string, salt: BufferSource) {

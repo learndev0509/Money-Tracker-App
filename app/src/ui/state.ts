@@ -87,7 +87,7 @@ export const histSorter = <T extends Dated & { amount: number }>(): ((a: T, b: T
       : hf.sort === 'low'
         ? (a, b) => a.amount - b.amount || sortTx(a, b)
         : sortTx;
-/** The Fuel card's draft. `method` exists only so the shared pay block can treat it like any other draft. */
+/** The Fuel card's draft: `method` is Cash, UPI or Card as chosen on the card. */
 export const fuel = {
   vehicleId: '',
   accountId: '',

@@ -27,6 +27,7 @@ import {
   setLedger,
   setSavedN,
   storedFace,
+  forgetSnapshotDay,
 } from '../data/storage';
 import { applyRecurring } from '../queries/recurring';
 import { ui } from '../ui/state';
@@ -160,6 +161,7 @@ export function eraseAll() {
   } catch (e) {
     /* nothing to remove */
   }
+  forgetSnapshotDay();
   setLedger(defaults());
   applyTheme();
   setSavedN(0);

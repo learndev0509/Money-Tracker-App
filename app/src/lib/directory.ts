@@ -3,7 +3,6 @@ import { norm } from './constants';
 export interface DirEntry {
   name: string;
   group: string;
-  type: 'bank' | 'card';
   hay: string;
 }
 export const BANK_DIR: [string, string[]][] = [
@@ -459,7 +458,6 @@ BANK_DIR.forEach(([group, names]) =>
     BANK_ENTRIES.push({
       name: n,
       group,
-      type: 'bank' as const,
       hay: norm(n) + ' ' + (BANK_ALIAS[n] || '') + ' ' + norm(group),
     }),
   ),
@@ -470,14 +468,12 @@ CARD_DIR.forEach(([issuer, alias, prods]) => {
     CARD_ENTRIES.push({
       name: issuer + ' ' + p,
       group: issuer,
-      type: 'card' as const,
       hay: norm(issuer + ' ' + p) + ' ' + alias + ' credit card',
     }),
   );
   CARD_ENTRIES.push({
     name: issuer + ' credit card (other)',
     group: issuer,
-    type: 'card' as const,
     hay: norm(issuer) + ' ' + alias + ' other credit card any',
   });
 });

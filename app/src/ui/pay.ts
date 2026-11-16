@@ -5,7 +5,7 @@ import { esc, norm, uid } from '../lib/constants';
 import { S, save } from '../data/storage';
 import { catIcon, incIcon } from './shared';
 import { INCOME_SOURCES, acctTypeOf } from '../data/model';
-import { acct, activeAccounts, lastUsed } from '../queries/ledger';
+import { accountUse, acct, activeAccounts, lastUsed } from '../queries/ledger';
 import { ICON, SEARCH_SVG } from '../lib/icons';
 import { form, fuel } from './state';
 import { closeSheet, sheetBack } from '../screens/sheets';
@@ -43,8 +43,9 @@ export function payBlockHTML(st: PayState, ctx: string, mode?: string) {
       html += `<div class="seg seg3">${(['bank', 'upi', 'card'] as const).map(m => `<button type="button" data-method="${m}" class="${st.method === m ? 'on' : ''}">${ICON[m]}${{ bank: 'Bank', upi: 'UPI', card: 'Card' }[m]}</button>`).join('')}</div>`;
     const sel = acct(st.accountId);
     html += `<button type="button" class="picker" data-open-pick="${type}" data-ctx="${ctx}"><span class="pk"><span class="pk-l">${st.method === 'upi' ? 'UPI · Bank' : type === 'bank' ? 'Bank' : 'Credit card'}</span><span class="pk-v ${sel ? '' : 'ph'}">${sel ? esc(sel.name) : 'Search all ' + (type === 'bank' ? 'banks' : 'credit cards') + '…'}</span></span>${SEARCH_SVG}</button>`;
+    const use = accountUse();
     const mine = activeAccounts(type)
-      .map(a => ({ a, u: lastUsed(a.id) }))
+      .map(a => ({ a, u: lastUsed(a.id, use) }))
       .sort((x, y) => y.u.localeCompare(x.u))
       .slice(0, 5)
       .map(x => x.a);

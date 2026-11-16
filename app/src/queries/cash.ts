@@ -29,12 +29,12 @@ export function cashEvents(): CashEvent[] {
   });
   return ev.sort((a, b) => a.k.localeCompare(b.k));
 }
+/** The same sum as walking cashEvents(), without building or sorting them. */
 export function cashBalance() {
   let bal = 0;
-  cashEvents().forEach(e => {
-    if (e.t === 'spend') bal -= e.amt;
-    else bal += e.amt;
-  });
+  for (const c of S.cashIn) bal += c.amount;
+  for (const t of S.tx) if (methodOf(t) === 'cash') bal -= t.amount;
+  for (const t of S.income) if (t.method === 'cash') bal += t.amount;
   return Math.round(bal * 100) / 100;
 }
 export const hasCashActivity = () =>

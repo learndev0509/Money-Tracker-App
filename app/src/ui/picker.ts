@@ -1,7 +1,7 @@
 import { esc, norm } from '../lib/constants';
 import { form, fuel, ui } from './state';
 import { S } from '../data/storage';
-import { activeAccounts, lastUsed } from '../queries/ledger';
+import { accountUse, activeAccounts, lastUsed } from '../queries/ledger';
 import { shortDate } from '../lib/dates';
 import { BANK_ALIAS, DIR, type DirEntry } from '../lib/directory';
 import type { Account } from '../data/model';
@@ -24,8 +24,9 @@ export function pickListHTML(type: 'bank' | 'card', ctx: string) {
             : ctx === 'fuel'
               ? fuel
               : form;
+  const use = accountUse();
   const mine = (inSettings ? S.accounts.filter(a => a.type === type) : activeAccounts(type))
-    .map(a => ({ a, u: lastUsed(a.id), n: S.tx.filter(t => t.accountId === a.id).length }))
+    .map(a => ({ a, u: lastUsed(a.id, use), n: use.get(a.id)?.n || 0 }))
     .sort((x, y) => y.u.localeCompare(x.u));
   const selId = inSettings || !stSel ? null : stSel.accountId;
   const mineSub = (x: { a: Account; u: string; n: number }) =>

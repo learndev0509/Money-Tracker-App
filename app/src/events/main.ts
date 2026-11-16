@@ -368,6 +368,8 @@ const clicksById: Record<string, (b: HTMLButtonElement) => void> = {
   },
 };
 
+/** The search list is rebuilt a moment after the last key, not on every one. */
+let searchTimer = 0;
 /** Live edits of the Add form, the Fuel card and the History search. */
 const inputsById: Record<string, (t: HTMLInputElement) => void> = {
   'f-amount': t => {
@@ -401,8 +403,11 @@ const inputsById: Record<string, (t: HTMLInputElement) => void> = {
   },
   'hist-search': t => {
     ui.histQuery = t.value;
-    const hb = el('#hist-body');
-    if (hb) hb.innerHTML = histBody();
+    clearTimeout(searchTimer);
+    searchTimer = window.setTimeout(() => {
+      const hb = el('#hist-body');
+      if (hb) hb.innerHTML = histBody();
+    }, 120);
   },
 };
 

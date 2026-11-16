@@ -14,6 +14,8 @@ import {
   legKm,
   num1,
   lastUsed,
+  accountUse,
+  newest,
   lastFuel,
   payLabel,
   sortTx,
@@ -34,7 +36,7 @@ import { toast } from '../ui/toast';
 import { budgetWarn } from '../ui/notify';
 /* ---------- ADD ---------- */
 export function recentHTML(fresh?: boolean) {
-  const r = S.tx.slice().sort(sortTx).slice(0, 3);
+  const r = newest(S.tx, 3);
   return r.length
     ? `<div class="list">${r.map((t, i) => txRow(t, fresh && i === 0)).join('')}</div>`
     : '<div class="hint">Your first expense will appear here with its day, date and time.</div>';
@@ -147,9 +149,10 @@ function fuelAccounts(type: 'bank' | 'card') {
   ]
     .map(acct)
     .filter((x): x is Account => !!x && x.type === type && !x.archived);
+  const use = accountUse();
   const recent = activeAccounts(type)
     .filter(x => !forFuel.includes(x))
-    .map(x => ({ x, u: lastUsed(x.id) }))
+    .map(x => ({ x, u: lastUsed(x.id, use) }))
     .sort((p, q) => q.u.localeCompare(p.u))
     .map(p => p.x);
   return forFuel.concat(recent).slice(0, 3);
@@ -361,7 +364,7 @@ export function saveFuel() {
       amount: Math.round(amt * 100) / 100,
       category: FUEL,
       accountId: a ? a.id : 'cash',
-      method: a ? (acctTypeOf(fuel.method) === a.type ? fuel.method : a.type) : ('cash' as const),
+      method: a ? fuel.method : ('cash' as const),
       date: dateKey(n),
       time: timeKey(n),
       note: '',

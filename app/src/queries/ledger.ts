@@ -86,9 +86,24 @@ export const vehName = (id: string) => {
   const v = S.vehicles.find(x => x.id === id);
   return v ? v.name : '';
 };
-/** Newest first by date, time, then id. */
-export const sortTx = (a: Dated, b: Dated) =>
-  (b.date + b.time).localeCompare(a.date + a.time) || b.id.localeCompare(a.id);
+/** Newest first by date, time, then id. Date and time are fixed-width digits, so a plain compare orders them. */
+export const sortTx = (a: Dated, b: Dated) => {
+  const ka = a.date + a.time,
+    kb = b.date + b.time;
+  return ka < kb ? 1 : ka > kb ? -1 : b.id.localeCompare(a.id);
+};
+/** The n newest of a list without sorting all of it: one pass keeping a short sorted run. */
+export function newest<T extends Dated>(list: T[], n: number): T[] {
+  const top: T[] = [];
+  for (const t of list) {
+    if (top.length === n && sortTx(t, top[n - 1]) >= 0) continue;
+    let i = top.length;
+    while (i > 0 && sortTx(t, top[i - 1]) < 0) i--;
+    top.splice(i, 0, t);
+    if (top.length > n) top.pop();
+  }
+  return top;
+}
 export const acct = (id: string) => S.accounts.find(a => a.id === id);
 export const acctName = (id: string) => {
   const a = acct(id);
@@ -149,17 +164,22 @@ export function groupBy<T extends { amount: number }>(arr: T[], keyFn: (t: T) =>
   return [...m.values()];
 }
 export const byValue = (a: { v: number }, b: { v: number }) => b.v - a.v;
-/** 'date time' of the last expense on an account, '' if none; used to order account chips. */
-export function lastUsed(id: string) {
-  let m = '';
-  S.tx.forEach(t => {
-    if (t.accountId === id) {
-      const k = t.date + ' ' + t.time;
-      if (k > m) m = k;
+/** One pass over the ledger: for each account, 'date time' of its last expense and how many it has. */
+export function accountUse() {
+  const use = new Map<string, { last: string; n: number }>();
+  for (const t of S.tx) {
+    const k = t.date + ' ' + t.time,
+      u = use.get(t.accountId);
+    if (!u) use.set(t.accountId, { last: k, n: 1 });
+    else {
+      u.n++;
+      if (k > u.last) u.last = k;
     }
-  });
-  return m;
+  }
+  return use;
 }
+/** 'date time' of the last expense on an account, '' if none; used to order account chips. Pass accountUse() when asking for several. */
+export const lastUsed = (id: string, use = accountUse()) => use.get(id)?.last || '';
 export function sources(items: (Paid & { amount: number })[]) {
   const s: Record<Method, number> = { cash: 0, bank: 0, upi: 0, card: 0 };
   items.forEach(t => {

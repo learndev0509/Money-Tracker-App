@@ -4,7 +4,7 @@ import { offerUndo, toast } from '../ui/toast';
 import { readErrors } from '../lib/errors';
 import { SUPPORT_EMAIL } from '../lib/constants';
 import { S, snapshots } from '../data/storage';
-import { billSoFar, catColor, initials, payLabel } from '../queries/ledger';
+import { accountUse, billSoFar, catColor, initials, payLabel } from '../queries/ledger';
 import { APP_BUILD, APP_VERSION, SNAPS, bioName, bioTitle, esc, isIOS, ordinal } from '../lib/constants';
 import { dateKey, dm, midDate, money, monthLabel, thisMonth } from '../lib/dates';
 import { canDownload, canShareFiles, ui } from '../ui/state';
@@ -24,9 +24,10 @@ export function rSettings() {
   const list = (type: 'bank' | 'card') => {
     const rows = S.accounts.filter(a => a.type === type);
     if (!rows.length) return `<div class="hint">None yet. Pick one while adding an expense and it appears here.</div>`;
+    const use = accountUse();
     return rows
       .map(a => {
-        const n = S.tx.filter(t => t.accountId === a.id).length;
+        const n = use.get(a.id)?.n || 0;
         const bill = type === 'card' ? billSoFar(a.id) : null;
         return `<div class="item" style="flex-wrap:wrap"><span class="name"${type === 'card' ? ' style="flex-basis:100%"' : ''}>${esc(a.name)}<span class="small">${n ? n + ' expense' + (n === 1 ? '' : 's') : 'No expenses'}${a.archived ? ' · hidden from Add' : ''}${bill ? ' · this bill so far ' + money(bill.sum) + ' (' + dm(bill.from) + ' – ' + dm(bill.to) + ')' : ''}</span></span>
         ${type === 'card' ? `<select class="sm" data-stmt="${a.id}" aria-label="Statement day for ${esc(a.name)}"><option value="">Statement day: not set</option>${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}" ${a.statementDay === i + 1 ? 'selected' : ''}>Statement on the ${ordinal(i + 1)}</option>`).join('')}</select><span class="row" style="flex:1;justify-content:flex-end">` : ''}

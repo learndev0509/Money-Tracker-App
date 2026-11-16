@@ -1,5 +1,5 @@
 import { Income, Tx } from '../data/model';
-import { S } from '../data/storage';
+import { S, saves } from '../data/storage';
 import { longDate, money, monthLabel, today } from '../lib/dates';
 import { HSORT, HSORT_SHORT, hf, histSorter, ui } from '../ui/state';
 import { METHOD_LABEL, groupBy, methodOf, payLabel, sum, txIn, txInYear } from '../queries/ledger';
@@ -117,18 +117,42 @@ function searchTotal(items: (Tx | Income)[]) {
   const plus = got ? `<span style="color:var(--good)">+${esc(money(got))}</span>` : '';
   return spent || !got ? esc(money(spent)) + (plus ? ' ' + plus : '') : plus;
 }
-/** Every expense and income across all time that matches the search box and the filters, in the chosen order. */
+/** The text a search runs over, built once per row and kept until the ledger changes (saves goes up). */
+let hayFor = -1,
+  hay = new WeakMap<Tx | Income, string>();
+function haystack(t: Tx | Income) {
+  if (hayFor !== saves) {
+    hay = new WeakMap();
+    hayFor = saves;
+  }
+  let s = hay.get(t);
+  if (s === undefined) {
+    s = [
+      t.category,
+      t.note,
+      payLabel(t),
+      METHOD_LABEL[methodOf(t)],
+      String(t.amount),
+      monthLabel(t.date.slice(0, 7)),
+      longDate(t.date),
+    ]
+      .join('\n')
+      .toLowerCase();
+    hay.set(t, s);
+  }
+  return s;
+}
+let lastHits: { key: string; hits: (Tx | Income)[] } | null = null;
+/** Every expense and income across all time that matches the search box and the filters, in the chosen order. The last answer is kept, since the list and the Filter sheet's count both ask. */
 function searchHits(): (Tx | Income)[] {
-  const q = ui.histQuery.trim().toLowerCase();
-  const matches = (t: Tx | Income) =>
-    t.category.toLowerCase().includes(q) ||
-    t.note.toLowerCase().includes(q) ||
-    payLabel(t).toLowerCase().includes(q) ||
-    METHOD_LABEL[methodOf(t)].toLowerCase().includes(q) ||
-    String(t.amount).includes(q.replace(/,/g, '')) ||
-    monthLabel(t.date.slice(0, 7)).toLowerCase().includes(q) ||
-    longDate(t.date).toLowerCase().includes(q);
-  return [...histFilter(S.tx), ...histFilter(S.income)].filter(matches).sort(histSorter());
+  const q = ui.histQuery.trim().toLowerCase(),
+    key = [saves, q, hf.cat, hf.method, hf.sort].join('\n');
+  if (lastHits && lastHits.key === key) return lastHits.hits;
+  const qa = q.replace(/,/g, '');
+  const matches = (t: Tx | Income) => haystack(t).includes(q) || (qa !== q && String(t.amount).includes(qa));
+  const hits = [...histFilter(S.tx), ...histFilter(S.income)].filter(matches).sort(histSorter());
+  lastHits = { key, hits };
+  return hits;
 }
 export function searchHTML() {
   const inc = new Set<Tx | Income>(S.income);
