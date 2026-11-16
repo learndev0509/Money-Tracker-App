@@ -230,6 +230,10 @@ says when it clears `meta.alerts`.
 form's "Adds to … after this" line and `saveCash` refuses zero (`tests/unit/cash.test.ts`,
 `e2e/cash.spec.ts`).
 
+1.2.13 (17 November 2026): the lock screen follows the Appearance choice. `applyTheme` keeps a plain
+copy of `meta.theme` under `money-tracker.v1.theme` and a locked start applies it with
+`applyStoredTheme`, since the encrypted ledger cannot be read before unlock (`e2e/locktheme.spec.ts`).
+
 ## Continuous integration
 
 The repository root holds `.github/workflows/check.yml`: on every push to `main` and every pull

@@ -1,6 +1,6 @@
 # Money tracker — handoff
 
-Version 1.2.12 · 17 November 2026 · Zestera
+Version 1.2.13 · 17 November 2026 · Zestera
 
 This is the engineering handoff for the Money tracker web app: what it is, what was built and why, how it is put together, how to change it, and what is still open. The user-facing description of every feature is in `Money tracker - Features and How it works.md`; this file does not repeat it.
 
@@ -25,13 +25,14 @@ A personal expense tracker for a phone, iPhone or Android, run as a Home Screen 
 | 1.2.7 | 2 Nov | First release from the module build (`app/`): income in History search, "new version is ready" reload toast, only the saved row animates, `₹1.2Cr` |
 | 1.2.8 | 16 Nov | Dashboard Month \| Year switch with a Month by month comparison card and a whole-year view; All months in History; Android install card (Chrome steps, Install button) and phone-neutral wording (biometric unlock is "fingerprint or face" off iPhone); CSV export removed; service worker claims on first install; re-enrolling Face ID replaces the passkey |
 | 1.2.9 | 16 Nov | New palette: beige, sage and sky blue in light, warm olive charcoal in dark; icons re-rendered from the recoloured SVG; releases renumbered (see below) |
+| 1.2.13 | 17 Nov | Lock screen follows the theme: `applyTheme` keeps a plain copy of `meta.theme` under `money-tracker.v1.theme`; a locked start calls `applyStoredTheme` because the encrypted ledger cannot be read yet |
 | 1.2.12 | 17 Nov | Cash in hand is additive: a `cashIn` entry of kind `adjust` adds in `cashBalance` instead of replacing the total (a user entered cash they were given that way and went far below zero); the action is "Add cash in hand", `cashEffect` shows the total after saving, the cash history says "Cash added", zero is refused |
 | 1.2.11 | 17 Nov | Review fixes: bank-paid fills reopen the Fuel card as UPI (`pickVehicle`); first reading asks for litres (`mileageHint`); non-number readings refused on the card and in `saveEdit`; a fill edited off Fuel drops `vehicleId`/`odo`/`litres`; `setRecurAlerts` says when it clears `meta.alerts` |
 | 1.2.10 | 16 Nov | Fuel card replaces the manual form while open, takes Cash / UPI / Card with per-vehicle memory, and optional odometer and litres for mileage (`tx.odo`, `tx.litres`, `fuelTrack()`); History opens on the current year with All months and gets Filter, Sort and Clear buttons with sheets; recurring entries announced by toast and notification (`meta.recurAlerts`) |
 
 Up to 1.2.6 each version shipped as `money-tracker-<version>.zip`; 1.2.2 and later are what has been on Netlify. From 1.2.7 a release is `app/dist/` (see §12 and `app/README.md`): uploaded by hand until 16 November 2026, built and published by Netlify from the GitHub repository since 17 November 2026 (§11).
 
-Numbering changed on 16 November 2026: the releases after 1.2.0 step the third number (1.2.1 … 1.2.11, 1.2.12) and the second is kept for a bigger milestone (1.3.0). The rows above and every mention in this file use the new numbers; the zips, the fixture `backup-1.8.0.json` and stamps in old backups still carry the old ones (1.8.0 = 1.2.6, 1.9.0 = 1.2.7, 1.10.0 = 1.2.8, 1.11.0 = 1.2.9).
+Numbering changed on 16 November 2026: the releases after 1.2.0 step the third number (1.2.1 … 1.2.12, 1.2.13) and the second is kept for a bigger milestone (1.3.0). The rows above and every mention in this file use the new numbers; the zips, the fixture `backup-1.8.0.json` and stamps in old backups still carry the old ones (1.8.0 = 1.2.6, 1.9.0 = 1.2.7, 1.10.0 = 1.2.8, 1.11.0 = 1.2.9).
 
 ## 3. Files
 
@@ -131,7 +132,7 @@ Real-data check: a restored production backup (14 expenses, ₹4.21 L, custom ca
 
 ## 8. Releasing a change
 
-Changes go into `app/src/` now; the steps are in `app/README.md` under Releasing (bump `version` and `buildDate` in `package.json`, add the version row, `npm run check`, commit and push). A push to `main` is the release: Netlify builds `app/` and publishes `app/dist/` about a minute later, and the GitHub workflow runs `npm run check` on the same commit. Netlify does not wait for that workflow, so run the check before pushing. Routine releases step the third number (1.2.11, 1.2.12 …); the second is for a bigger milestone. The steps below are for the root single-file copy, which the host no longer serves; they are kept for the record:
+Changes go into `app/src/` now; the steps are in `app/README.md` under Releasing (bump `version` and `buildDate` in `package.json`, add the version row, `npm run check`, commit and push). A push to `main` is the release: Netlify builds `app/` and publishes `app/dist/` about a minute later, and the GitHub workflow runs `npm run check` on the same commit. Netlify does not wait for that workflow, so run the check before pushing. Routine releases step the third number (1.2.12, 1.2.13 …); the second is for a bigger milestone. The steps below are for the root single-file copy, which the host no longer serves; they are kept for the record:
 
 1. Edit `index.html`. Keep new UI in the existing style (string templates, `esc()`, `data-*` events, no comments that narrate).
 2. Bump `APP_VERSION` (and `APP_BUILD`) at the top of the script.
@@ -193,6 +194,8 @@ The same app, split into TypeScript modules and built with Vite, lives in `app/`
 - **Numbering.** Releases after 1.2.0 were renumbered 1.2.1–1.2.9; see §2.
 
 1.2.10 (16 November 2026): the Fuel card stands in for the manual form while open (`ui.fuelOpen` in `screens/add.ts`), with `fuel.method` Cash / UPI / Card (`pickVehicle`, `pickFuelMethod`) and optional `fuel.odo` / `fuel.litres` saved as `tx.odo` / `tx.litres`; `queries/ledger.ts` `fuelTrack()` turns the readings into legs with km/L for the card hint, the Dashboard Fuel card, the vehicle sheet and the expense sheet. History opens with `ui.histMonth === 0`; the Category, Paid with and Sort choices moved into the `hfilter` and `hsort` sheets (`screens/sheets/hist.ts`) behind Filter, Sort and Clear buttons. `applyRecurring()` names each entry it adds in a toast and, when `meta.recurAlerts` is not off, a notification (`ui/notify.ts`).
+
+1.2.13 (17 November 2026) makes the lock screen follow the Appearance choice. `meta.theme` is inside the ledger, which a PIN encrypts, so a locked start saw an empty ledger and the lock screen followed the phone (Light in Settings, dark lock screen on a dark phone). `applyTheme` (`ui/render.ts`) now also writes the choice, `light` or `dark` and nothing else, to `localStorage['money-tracker.v1.theme']` (`THEME_KEY`), removing it for Match phone; `main.ts` calls `applyStoredTheme` instead of `applyTheme` when the ledger is locked, so the copy is read rather than cleared; `eraseAll` clears it. Phones upgrading get the copy on their next unlock. Covered by `e2e/locktheme.spec.ts`.
 
 1.2.12 (17 November 2026) makes cash in hand additive, after a production ledger showed a balance far below zero: cash a user was given had been entered with "Set cash in hand", which replaced the total each time. `cashBalance` and the cash history (`cashListSheet`) now add an `adjust` entry like a withdrawal, so existing ledgers correct themselves and the stored kind keeps its name; the action is labelled "Add cash in hand", `cashEffect` (`sheets/forms.ts`) gives the form's "Adds to … after this" line, and `saveCash` refuses zero. There is no longer a way to overwrite the total. Covered by `tests/unit/cash.test.ts` and `e2e/cash.spec.ts`.
 
