@@ -96,25 +96,25 @@ test('a withdrawal is bank-only and raises the balance', async () => {
   await expect(cashBig()).toContainText('₹1,940');
 });
 
-test('setting cash in hand overrides, and a later cash spend reduces it', async () => {
+test('adding cash in hand adds to what is left, and a later cash spend reduces it', async () => {
   await app.click('.cashcard [data-detail="cashform|adjust"]');
   await app.fill('#e-amount', '1500');
   await app.click('#sheet [data-save-cash]');
-  await expect(cashBig()).toContainText('₹1,500');
+  await expect(cashBig()).toContainText('₹3,440');
   await app.add();
   await app.addExpense('100', 'Transport', 'Auto', 'cash');
   await app.tab('dashboard');
-  await expect(cashBig()).toContainText('₹1,400');
+  await expect(cashBig()).toContainText('₹3,340');
 });
 
-test('the cash history lists withdrawal, adjust and spends', async () => {
+test('the cash history lists the withdrawal, the cash added and spends', async () => {
   await app.click('.cashcard [data-detail="cash|list"]');
   await expect(app.sheetBody).toContainText('Withdrawal');
-  await expect(app.sheetBody).toContainText('Set to');
+  await expect(app.sheetBody).toContainText('Cash added');
   await expect(app.sheetBody).toContainText('Auto');
   await app.shot('04-cash-history', false);
   await app.click('#sheet button[data-close]');
-  await expect(app.main).toContainText('₹1,400 in hand');
+  await expect(app.main).toContainText('₹3,340 in hand');
   await app.shot('05-dashboard');
 });
 

@@ -2,7 +2,7 @@ import { SheetView, closeSheet } from './index';
 import { form, ui } from '../../ui/state';
 import { acct, acctName, catColor } from '../../queries/ledger';
 import { dateKey, fmtTime, money, shortDate, timeKey, today } from '../../lib/dates';
-import { cashBalance, cashEvents, cashMoment } from '../../queries/cash';
+import { cashBalance, cashEvents } from '../../queries/cash';
 import { cashFormHTML } from './forms';
 import { esc, uid } from '../../lib/constants';
 import { parseAmt } from '../../lib/calc';
@@ -27,7 +27,7 @@ export function cashFormSheet(p: string[]): SheetView {
     };
   }
   return {
-    title: k === 'adjust' ? 'Set cash in hand' : 'Log a cash withdrawal',
+    title: k === 'adjust' ? 'Add cash in hand' : 'Log a cash withdrawal',
     sub: k === 'adjust' ? 'Cash in hand now: ' + money(cashBalance()) : 'From an ATM or a bank counter',
     body: cashFormHTML(ui.editCash),
     tall: true,
@@ -40,9 +40,8 @@ export function cashListSheet(_p: string[]): SheetView {
   const note = (r: { note: string }) => (r.note ? '<span class="note"> · ' + esc(r.note) + '</span>' : '');
   const rows = ev
     .map(e => {
-      const line = `<div class="item"><span class="dot" style="background:${e.t === 'spend' ? catColor(e.ref.category) : e.t === 'income' ? 'var(--good)' : e.t === 'adjust' ? 'var(--ink-2)' : 'var(--src-bank)'}"></span><span class="name">${e.t === 'spend' ? esc(e.ref.category) + note(e.ref) : e.t === 'income' ? 'Received · ' + esc(e.ref.category) + note(e.ref) : e.t === 'adjust' ? 'Set to ' + esc(money(e.amt)) + note(e.ref) : 'Withdrawal' + (acct(e.ref.accountId) ? ' · ' + esc(acctName(e.ref.accountId)) : '') + note(e.ref)}<span class="small">${esc(shortDate(e.ref.date))}${e.ref.time ? ' · ' + esc(fmtTime(e.ref.time)) : ''} · after this ${esc(money(bal))}</span></span><span class="amt" style="${e.t === 'spend' ? 'color:var(--danger)' : 'color:var(--good)'}">${e.t === 'spend' ? '−' : e.t === 'adjust' ? '=' : '+'}${esc(money(e.amt))}</span>${e.t === 'spend' || e.t === 'income' ? `<button type="button" class="btn-ghost btn-sm" data-detail="${e.t === 'spend' ? 'tx' : 'inc'}|${e.ref.id}">›</button>` : ui.pending === 'cash:' + e.ref.id ? `<span class="confirm"><button type="button" class="btn-sm btn-danger" data-del-cash="${e.ref.id}">Delete</button><button type="button" class="btn-sm" data-cancel>No</button></span>` : `<button type="button" class="btn-ghost btn-sm" data-ask="cash:${e.ref.id}">✕</button>`}</div>`;
-      if (e.t === 'adjust') bal = 0;
-      else if (e.t === 'spend') bal += e.amt;
+      const line = `<div class="item"><span class="dot" style="background:${e.t === 'spend' ? catColor(e.ref.category) : e.t === 'income' ? 'var(--good)' : e.t === 'adjust' ? 'var(--ink-2)' : 'var(--src-bank)'}"></span><span class="name">${e.t === 'spend' ? esc(e.ref.category) + note(e.ref) : e.t === 'income' ? 'Received · ' + esc(e.ref.category) + note(e.ref) : e.t === 'adjust' ? 'Cash added' + note(e.ref) : 'Withdrawal' + (acct(e.ref.accountId) ? ' · ' + esc(acctName(e.ref.accountId)) : '') + note(e.ref)}<span class="small">${esc(shortDate(e.ref.date))}${e.ref.time ? ' · ' + esc(fmtTime(e.ref.time)) : ''} · after this ${esc(money(bal))}</span></span><span class="amt" style="${e.t === 'spend' ? 'color:var(--danger)' : 'color:var(--good)'}">${e.t === 'spend' ? '−' : '+'}${esc(money(e.amt))}</span>${e.t === 'spend' || e.t === 'income' ? `<button type="button" class="btn-ghost btn-sm" data-detail="${e.t === 'spend' ? 'tx' : 'inc'}|${e.ref.id}">›</button>` : ui.pending === 'cash:' + e.ref.id ? `<span class="confirm"><button type="button" class="btn-sm btn-danger" data-del-cash="${e.ref.id}">Delete</button><button type="button" class="btn-sm" data-cancel>No</button></span>` : `<button type="button" class="btn-ghost btn-sm" data-ask="cash:${e.ref.id}">✕</button>`}</div>`;
+      if (e.t === 'spend') bal += e.amt;
       else bal -= e.amt;
       return line;
     })
@@ -57,7 +56,7 @@ export function saveCash() {
   const st = ui.editCash;
   if (!st) return;
   const amt = parseAmt(st.amount);
-  if (!(amt >= 0) || (st.kind === 'withdrawal' && !(amt > 0))) {
+  if (!(amt > 0)) {
     toast('Enter an amount');
     return;
   }
@@ -82,19 +81,12 @@ export function saveCash() {
     time: /^\d{2}:\d{2}$/.test(st.time) ? st.time : '',
     note: String(st.note || '').trim(),
   };
-  const was = cashBalance(cashMoment(c.date, c.time));
   S.cashIn.push(c);
   save();
   if (c.accountId) remember(acct(c.accountId));
   closeSheet();
   render(false);
   toast(
-    c.kind === 'adjust'
-      ? 'Cash in hand set to ' +
-          money(c.amount) +
-          ', was ' +
-          money(was) +
-          (cashBalance() === c.amount ? '' : ' · now ' + money(cashBalance()))
-      : 'Withdrew ' + money(c.amount) + ' · now ' + money(cashBalance()),
+    (c.kind === 'adjust' ? 'Added ' : 'Withdrew ') + money(c.amount) + ' · cash in hand now ' + money(cashBalance()),
   );
 }

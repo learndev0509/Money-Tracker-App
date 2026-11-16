@@ -4,7 +4,6 @@ import { INCOME_SOURCES } from '../../data/model';
 import { acct, acctName, payLabel } from '../../queries/ledger';
 import { dateKey, fmtTime, longDate, midDate, money, parseDate, timeKey, today } from '../../lib/dates';
 import { S, save } from '../../data/storage';
-import { cashBalance } from '../../queries/cash';
 import { incomeFormHTML } from './forms';
 import { DAYS, esc, uid } from '../../lib/constants';
 import { recurLabel } from '../../queries/recurring';
@@ -16,15 +15,13 @@ import { render } from '../../ui/render';
 export function incomeFormSheet(p: string[]): SheetView {
   if (p[1] === 'new') {
     if (!ui.editIncome || ui.editIncome.id) {
-      const n = new Date(),
-        cash = p[2] === 'cash';
-      // "Cash received" opens the same form already on Cash and Gift: it adds to the cash in hand.
+      const n = new Date();
       ui.editIncome = {
         id: '',
         amount: '',
-        category: cash ? 'Gift' : INCOME_SOURCES[0],
-        method: cash ? 'cash' : 'bank',
-        accountId: cash ? 'cash' : acct(form.lastBank) ? form.lastBank : '',
+        category: INCOME_SOURCES[0],
+        method: 'bank',
+        accountId: acct(form.lastBank) ? form.lastBank : '',
         date: dateKey(n),
         time: timeKey(n),
         note: '',
@@ -38,12 +35,8 @@ export function incomeFormSheet(p: string[]): SheetView {
   const ei = ui.editIncome,
     orig = ei.id ? S.income.find(x => x.id === ei.id) : undefined;
   return {
-    title: ei.id ? 'Edit money in' : p[2] === 'cash' ? 'Cash received' : 'Money in',
-    sub: orig
-      ? 'Originally ' + longDate(orig.date)
-      : p[2] === 'cash'
-        ? 'Adds to your cash in hand: ' + money(cashBalance()) + ' now'
-        : 'Salary, a refund, cash someone gave you',
+    title: ei.id ? 'Edit money in' : 'Money in',
+    sub: orig ? 'Originally ' + longDate(orig.date) : 'Salary, a refund, cash someone gave you',
     body: incomeFormHTML(ei),
     tall: true,
     focus: '#e-amount',

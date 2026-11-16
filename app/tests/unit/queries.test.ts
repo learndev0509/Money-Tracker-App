@@ -64,10 +64,10 @@ describe('budgets', () => {
 
 describe('cash in hand', () => {
   beforeEach(load);
-  it('replays adjustments, withdrawals, cash spends and cash income in time order', () => {
+  it('adds cash added by hand, withdrawals and cash income, and takes off cash spends', () => {
     const ev = cashEvents();
     expect(ev.map(e => e.t)).toEqual(['spend', 'adjust', 'spend', 'withdrawal', 'income']);
-    expect(cashBalance()).toBe(1000 - 120 + 2000 + 500);
+    expect(cashBalance()).toBe(-300 + 1000 - 120 + 2000 + 500);
     expect(hasCashActivity()).toBe(true);
   });
 });

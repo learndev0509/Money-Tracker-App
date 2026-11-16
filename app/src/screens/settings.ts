@@ -92,9 +92,8 @@ export function rSettings() {
       <div class="hint" style="margin-top:8px">Set each card's statement day to see "this bill so far" on the Dashboard. Anything with expenses can be hidden but not deleted, so history stays complete.</div></section>
     <section class="card"><h2>Cash in hand</h2>
       <div class="kv" style="margin-top:10px"><span>Right now</span><b>${esc(money(cashBalance()))}</b></div>
-      <div class="two" style="margin-top:10px"><button type="button" data-detail="cashform|withdrawal">Log a withdrawal</button><button type="button" data-detail="incomeform|new|cash">Cash received</button></div>
-      <button type="button" style="margin-top:10px;width:100%" data-detail="cashform|adjust">Set cash in hand</button>
-      <div class="hint" style="margin-top:8px">Log ATM withdrawals and cash you are given as they happen; both add to the total, cash spends count against it and the Dashboard shows what should be in your wallet. Set cash in hand replaces the total with what you counted.</div></section>
+      <div class="two" style="margin-top:10px"><button type="button" data-detail="cashform|withdrawal">Log a withdrawal</button><button type="button" data-detail="cashform|adjust">Add cash in hand</button></div>
+      <div class="hint" style="margin-top:8px">Log ATM withdrawals and add cash you are given or already have; cash spends then count against it and the Dashboard shows what should be in your wallet.</div></section>
     <section class="card"><h2>Vehicles</h2>
       <div class="chips">${S.vehicles.map(v => `<span class="chip">${glyph(CAT_ICON.transport, catColor(FUEL))}<span class="t">${esc(v.name)}</span><button type="button" class="btn-ghost btn-sm" style="padding:0 2px;min-height:0" data-del-veh="${v.id}" aria-label="Remove ${esc(v.name)}">✕</button></span>`).join('') || '<span class="hint">None yet. The Fuel card on the Add screen logs each fill against a vehicle.</span>'}</div>
       ${vehInputHTML()}

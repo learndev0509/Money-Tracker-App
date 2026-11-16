@@ -7,7 +7,11 @@ export type CashEvent = { k: string; amt: number } & (
   { t: 'withdrawal' | 'adjust'; ref: CashIn } | { t: 'spend'; ref: Tx } | { t: 'income'; ref: Income }
 );
 
-/* cash in hand: adjustments set the balance, withdrawals add, cash expenses subtract, in time order */
+/*
+ * Cash in hand: cash added by hand (kind 'adjust'), withdrawals and cash income add; cash expenses
+ * subtract. 'adjust' once replaced the total; people used it to add cash they were given and lost
+ * what they had, so it adds like everything else. The stored kind keeps its old name.
+ */
 export function cashEvents(): CashEvent[] {
   const ev: CashEvent[] = S.cashIn.map(c => ({
     k: c.date + ' ' + (c.time || '00:00') + ' ' + c.id,
@@ -25,24 +29,13 @@ export function cashEvents(): CashEvent[] {
   });
   return ev.sort((a, b) => a.k.localeCompare(b.k));
 }
-/**
- * Cash in hand now, or with `before` (a moment from cashMoment) what it was by then:
- * the amount a Set at that moment replaces.
- */
-export function cashBalance(before?: string) {
+export function cashBalance() {
   let bal = 0;
-  for (const e of cashEvents()) {
-    if (before && e.k >= before) break;
-    if (e.t === 'adjust') bal = e.amt;
-    else if (e.t === 'spend') bal -= e.amt;
+  cashEvents().forEach(e => {
+    if (e.t === 'spend') bal -= e.amt;
     else bal += e.amt;
-  }
+  });
   return Math.round(bal * 100) / 100;
 }
-/**
- * The sort key of a moment, comparable with a cash event's `k`. It sorts after everything already
- * recorded in that minute, because an entry saved now gets a newer id and lands after those too.
- */
-export const cashMoment = (date: string, time: string) => date + ' ' + (time || '00:00') + ' ~';
 export const hasCashActivity = () =>
   S.cashIn.length > 0 || S.tx.some(t => methodOf(t) === 'cash') || S.income.some(t => t.method === 'cash');
