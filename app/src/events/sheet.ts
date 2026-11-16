@@ -5,6 +5,7 @@ import { INCOME_SOURCES, isMethod } from '../data/model';
 import { S, save } from '../data/storage';
 import { acct } from '../queries/ledger';
 import { cashBalance } from '../queries/cash';
+import { cashEffect } from '../screens/sheets/forms';
 import { hf, isHistSort, ui, type Draft } from '../ui/state';
 import { toast } from '../ui/toast';
 import { go, render } from '../ui/render';
@@ -256,6 +257,8 @@ export function bindSheet() {
     else if (t.id === 'e-time') st.time = t.value;
     else if (t.id === 'e-odo') st.odoIn = t.value;
     else if (t.id === 'e-litres') st.litresIn = t.value;
+    const fx = el('#cash-effect');
+    if (fx) fx.textContent = cashEffect(st);
   });
   sheet.addEventListener('change', e => {
     const t = e.target as HTMLInputElement,

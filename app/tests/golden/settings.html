@@ -24,8 +24,9 @@
       <div class="hint" style="margin-top:8px">Set each card's statement day to see "this bill so far" on the Dashboard. Anything with expenses can be hidden but not deleted, so history stays complete.</div></section>
     <section class="card"><h2>Cash in hand</h2>
       <div class="kv" style="margin-top:10px"><span>Right now</span><b>₹3,380</b></div>
-      <div class="two" style="margin-top:10px"><button type="button" data-detail="cashform|withdrawal">Log a withdrawal</button><button type="button" data-detail="cashform|adjust">Set cash in hand</button></div>
-      <div class="hint" style="margin-top:8px">Log ATM withdrawals as they happen; cash spends then count against them and the Dashboard shows what should be in your wallet.</div></section>
+      <div class="two" style="margin-top:10px"><button type="button" data-detail="cashform|withdrawal">Log a withdrawal</button><button type="button" data-detail="incomeform|new|cash">Cash received</button></div>
+      <button type="button" style="margin-top:10px;width:100%" data-detail="cashform|adjust">Set cash in hand</button>
+      <div class="hint" style="margin-top:8px">Log ATM withdrawals and cash you are given as they happen; both add to the total, cash spends count against it and the Dashboard shows what should be in your wallet. Set cash in hand replaces the total with what you counted.</div></section>
     <section class="card"><h2>Vehicles</h2>
       <div class="chips"><span class="chip"><span class="ci" style="--cc:var(--c4)"><svg viewBox="0 0 24 24"><path d="M5 15l1.5-6h11L19 15M3 15h18v4H3zM7 19v2M17 19v2"/><circle cx="7.5" cy="15" r="1"/><circle cx="16.5" cy="15" r="1"/></svg></span><span class="t">Swift</span><button type="button" class="btn-ghost btn-sm" style="padding:0 2px;min-height:0" data-del-veh="v1" aria-label="Remove Swift">✕</button></span></div>
       <div class="row" style="margin-top:10px"><input class="grow" id="veh-name" placeholder="Vehicle, e.g. Swift, Activa" maxlength="30" autocomplete="off"><button type="button" id="veh-add">Add</button></div>

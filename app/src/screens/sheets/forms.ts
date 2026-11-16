@@ -2,7 +2,9 @@ import { Draft, ui } from '../../ui/state';
 import { esc, ordinal } from '../../lib/constants';
 import { CALC_BTN } from '../../lib/icons';
 import { catChipsHTML, payBlockHTML, srcChipsHTML } from '../../ui/pay';
-import { addMonths, daysInMonth, monthLabel, thisMonth, today } from '../../lib/dates';
+import { addMonths, daysInMonth, money, monthLabel, thisMonth, today } from '../../lib/dates';
+import { cashBalance, cashMoment } from '../../queries/cash';
+import { parseAmt } from '../../lib/calc';
 /* The three edit forms the sheets share: expense/recurring, money in, cash. */
 export function editFormHTML(st: Draft, ctx: string) {
   const isRec = ctx === 'recur',
@@ -41,11 +43,29 @@ export function incomeFormHTML(st: Draft) {
     <button type="button" data-back>Cancel</button>
   </div>`;
 }
+/**
+ * What saving "Set cash in hand" will do, in words. Setting replaces the total; people who meant to add
+ * cash they were given lost what they already had, so the form says which amount goes and by how much.
+ */
+export function cashEffect(st: Draft) {
+  const prev = cashBalance(cashMoment(st.date, st.time)),
+    amt = st.amount.trim() === '' ? NaN : parseAmt(st.amount);
+  if (!(amt >= 0)) return 'This replaces the ' + money(prev) + ' in hand. It does not add to it.';
+  const d = Math.round((amt - prev) * 100) / 100;
+  return (
+    'This replaces ' +
+    money(prev) +
+    ' with ' +
+    money(amt) +
+    (d > 0 ? ', ' + money(d) + ' more' : d < 0 ? ', ' + money(-d) + ' less' : ', no change') +
+    '. It does not add to what you have.'
+  );
+}
 export function cashFormHTML(st: Draft) {
   const isAdj = st.kind === 'adjust';
   return `<div class="form">
     <div class="amount-in"><span class="cur">₹</span><input id="e-amount" type="text" inputmode="decimal" placeholder="0" value="${esc(st.amount)}" aria-label="Amount" autocomplete="off">${CALC_BTN('sheet')}</div>
-    ${isAdj ? '<div class="hint">Count the notes in your wallet and enter the total. From this moment the app tracks it down as you spend cash and up as you withdraw.</div>' : `<div>${payBlockHTML(st, 'cash', 'bank')}</div>`}
+    ${isAdj ? `<div class="hint" id="cash-effect">${esc(cashEffect(st))}</div><div class="hint">Count the notes in your wallet and enter the total. From this moment the app tracks it down as you spend cash and up as you withdraw or receive cash.</div><button type="button" class="btn-link" data-detail="incomeform|new|cash">Got cash from someone? Add it as cash received instead</button>` : `<div>${payBlockHTML(st, 'cash', 'bank')}</div>`}
     <div class="two"><label class="f">Date<input id="e-date" type="date" value="${esc(st.date)}" max="${today()}"></label><label class="f">Time<input id="e-time" type="time" value="${esc(st.time)}"></label></div>
     <label class="f">Note (optional)<input id="e-note" type="text" value="${esc(st.note)}" placeholder="${isAdj ? 'e.g. Counted my wallet' : 'e.g. ATM near office'}" maxlength="60"></label>
     <button type="button" class="btn-primary" data-save-cash>${isAdj ? 'Set cash in hand' : 'Log withdrawal'}</button>

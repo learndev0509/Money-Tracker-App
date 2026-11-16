@@ -2,7 +2,7 @@ import { SheetView, closeSheet } from './index';
 import { form, ui } from '../../ui/state';
 import { acct, acctName, catColor } from '../../queries/ledger';
 import { dateKey, fmtTime, money, shortDate, timeKey, today } from '../../lib/dates';
-import { cashBalance, cashEvents } from '../../queries/cash';
+import { cashBalance, cashEvents, cashMoment } from '../../queries/cash';
 import { cashFormHTML } from './forms';
 import { esc, uid } from '../../lib/constants';
 import { parseAmt } from '../../lib/calc';
@@ -82,12 +82,19 @@ export function saveCash() {
     time: /^\d{2}:\d{2}$/.test(st.time) ? st.time : '',
     note: String(st.note || '').trim(),
   };
+  const was = cashBalance(cashMoment(c.date, c.time));
   S.cashIn.push(c);
   save();
   if (c.accountId) remember(acct(c.accountId));
   closeSheet();
   render(false);
   toast(
-    (c.kind === 'adjust' ? 'Cash in hand set to ' : 'Withdrew ') + money(c.amount) + ' · now ' + money(cashBalance()),
+    c.kind === 'adjust'
+      ? 'Cash in hand set to ' +
+          money(c.amount) +
+          ', was ' +
+          money(was) +
+          (cashBalance() === c.amount ? '' : ' · now ' + money(cashBalance()))
+      : 'Withdrew ' + money(c.amount) + ' · now ' + money(cashBalance()),
   );
 }
