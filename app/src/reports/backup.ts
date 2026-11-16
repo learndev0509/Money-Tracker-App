@@ -1,13 +1,11 @@
-import { Income, Tx } from '../data/model';
-import { DAYS, el } from '../lib/constants';
+import { el } from '../lib/constants';
 import { toast } from '../ui/toast';
 import { S, save, setLedger } from '../data/storage';
-import { parseDate, thisMonth, today } from '../lib/dates';
+import { thisMonth, today } from '../lib/dates';
 import { applyTheme, render } from '../ui/render';
-import { METHOD_LABEL, acctName, methodOf, sortTx, vehName } from '../queries/ledger';
 import { migrate, type Raw } from '../data/model';
 import { ui } from '../ui/state';
-/* ---------- backup, CSV, restore ---------- */
+/* ---------- backup, restore ---------- */
 export function download(name: string, text: BlobPart, type: string) {
   try {
     const b = new Blob([text], { type });
@@ -76,68 +74,6 @@ export function exportData(mode: 'copy' | 'download' | 'share') {
   copyOrShow(json, 'Backup copied. Paste it into Notes to keep it.');
   markBackup();
   render(false);
-}
-export function csvText() {
-  const rows: (string | number)[][] = [
-    [
-      'Date',
-      'Time',
-      'Weekday',
-      'Type',
-      'Amount (INR)',
-      'Category',
-      'Payment',
-      'Account',
-      'Note',
-      'Recurring',
-      'Vehicle',
-    ],
-  ];
-  [
-    ...S.tx.map(t => [t, 'Expense'] as [Tx | Income, string]),
-    ...S.income.map(t => [t, 'Income'] as [Tx | Income, string]),
-  ]
-    .sort((a, b) => sortTx(a[0], b[0]))
-    .forEach(([t, type]) =>
-      rows.push([
-        t.date,
-        t.time,
-        DAYS[parseDate(t.date).getDay()],
-        type,
-        t.amount,
-        t.category,
-        METHOD_LABEL[methodOf(t)],
-        methodOf(t) === 'cash' ? 'Cash' : acctName(t.accountId),
-        t.note,
-        t.recurringId ? 'yes' : '',
-        'vehicleId' in t ? vehName(t.vehicleId) : '',
-      ]),
-    );
-  return rows
-    .map(r =>
-      r
-        .map(v => {
-          v = String(v == null ? '' : v);
-          return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
-        })
-        .join(','),
-    )
-    .join('\r\n');
-}
-
-export function exportCSV(dl: boolean) {
-  if (!S.tx.length) {
-    toast('Nothing to export yet');
-    return;
-  }
-  const csv = csvText();
-  if (dl) {
-    if (!download('money-tracker-' + today() + '.csv', '﻿' + csv, 'text/csv'))
-      toast('Download is not available here; use Copy CSV');
-    else toast('CSV downloaded · ' + S.tx.length + ' rows');
-    return;
-  }
-  copyOrShow(csv, 'CSV copied · ' + S.tx.length + ' rows');
 }
 export function importData() {
   let d;

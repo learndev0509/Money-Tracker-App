@@ -3,7 +3,7 @@ import { Income, Tx } from '../data/model';
 import { S } from '../data/storage';
 import { longDate, money, monthLabel, today } from '../lib/dates';
 import { HSORT, hf, histSorter, ui } from '../ui/state';
-import { METHOD_LABEL, groupBy, methodOf, payLabel, sum, txIn } from '../queries/ledger';
+import { METHOD_LABEL, groupBy, methodOf, payLabel, sum, txIn, txInYear } from '../queries/ledger';
 import { MONTHS, el, esc, pad } from '../lib/constants';
 import { METHODS } from '../data/model';
 import { ADD_BTN } from '../ui/render';
@@ -34,16 +34,18 @@ export function filterChipsHTML() {
     `<option value="${esc(v)}" ${sel ? 'selected' : ''} ${extra || ''}>${esc(label)}</option>`;
   const sel = (id: string, label: string, on: boolean, opts: string) =>
     `<label>${label}<select id="${id}" class="${on ? 'on' : ''}" aria-label="${label}">${opts}</select></label>`;
-  const months = Array.from({ length: 12 }, (_, i) => {
-    const m = i + 1,
-      n = txIn(ui.histYear + '-' + pad(m)).length;
-    return opt(
-      m,
-      MONTHS[m - 1] + (n ? ' · ' + n : ''),
-      m === ui.histMonth,
-      ui.histYear === curY && m > curM ? 'disabled' : '',
-    );
-  }).join('');
+  const months =
+    opt(0, 'All months', ui.histMonth === 0) +
+    Array.from({ length: 12 }, (_, i) => {
+      const m = i + 1,
+        n = txIn(ui.histYear + '-' + pad(m)).length;
+      return opt(
+        m,
+        MONTHS[m - 1] + (n ? ' · ' + n : ''),
+        m === ui.histMonth,
+        ui.histYear === curY && m > curM ? 'disabled' : '',
+      );
+    }).join('');
   return `<div class="hsel">
     ${sel('h-year', 'Year', false, ys.map(y => opt(y, y, y === ui.histYear)).join(''))}
     ${sel('h-month', 'Month', false, months)}
@@ -68,15 +70,34 @@ export function refreshHist() {
   if (f) f.innerHTML = filterChipsHTML();
   if (b) b.innerHTML = histBody();
 }
+/** The whole year, one card per month with its total, each grouped by day inside. */
+function monthSections(items: Tx[]) {
+  const oldest = hf.sort === 'old';
+  return groupBy(items, t => t.date.slice(0, 7))
+    .sort((a, b) => (oldest ? -1 : 1) * b.key.localeCompare(a.key))
+    .map(
+      g =>
+        `<section class="card"><button type="button" class="dayhead monthhead" data-detail="month|${g.key}"><span>${esc(monthLabel(g.key))} · ${g.n}</span><span class="amt">${esc(money(g.v))}</span></button>${dayGroups(g.items, oldest)}</section>`,
+    )
+    .join('');
+}
+/** The Month dropdown's choice: one month, or the whole year when it is on "All months". */
 export function monthListHTML() {
-  const k = ui.histYear + '-' + pad(ui.histMonth),
-    all = txIn(k),
+  const year = !ui.histMonth,
+    k = ui.histYear + '-' + pad(ui.histMonth),
+    label = year ? String(ui.histYear) : monthLabel(k),
+    all = year ? txInYear(ui.histYear) : txIn(k),
     items = histFilter(all).sort(histSorter()),
     filtered = !!(hf.method || hf.cat);
   const byAmount = hf.sort === 'high' || hf.sort === 'low';
+  const list = byAmount
+    ? `<section class="card"><div class="list">${items.map(t => txRow(t)).join('')}</div></section>`
+    : year
+      ? monthSections(items)
+      : `<section class="card">${dayGroups(items, hf.sort === 'old')}</section>`;
   return `<div class="view">
-    <div class="kv" style="padding:0 2px"><span>${esc(monthLabel(k))} · ${items.length} expense${items.length === 1 ? '' : 's'}${filtered ? ' · filtered' : ''} · ${esc(HSORT[hf.sort].toLowerCase())}</span><b>${esc(money(sum(items)))}</b></div>
-    ${items.length ? `<section class="card">${byAmount ? `<div class="list">${items.map(t => txRow(t)).join('')}</div>` : dayGroups(items, hf.sort === 'old')}</section>` : `<div class="card empty"><strong>${all.length ? 'Nothing matches the filters in ' + esc(monthLabel(k)) : 'Nothing spent in ' + esc(monthLabel(k))}</strong><span>${all.length ? 'Change Category or Paid with above to see every expense that month.' : 'Pick another month or year above.'}</span>${all.length ? '<button type="button" class="btn-sm" data-hf-clear>Clear filters</button>' : ''}</div>`}
+    <div class="kv" style="padding:0 2px"><span>${esc(label)} · ${items.length} expense${items.length === 1 ? '' : 's'}${filtered ? ' · filtered' : ''} · ${esc(HSORT[hf.sort].toLowerCase())}</span><b>${esc(money(sum(items)))}</b></div>
+    ${items.length ? list : `<div class="card empty"><strong>${all.length ? 'Nothing matches the filters in ' + esc(label) : 'Nothing spent in ' + esc(label)}</strong><span>${all.length ? 'Change Category or Paid with above to see every expense that ' + (year ? 'year' : 'month') + '.' : 'Pick another month or year above.'}</span>${all.length ? '<button type="button" class="btn-sm" data-hf-clear>Clear filters</button>' : ''}</div>`}
   </div>`;
 }
 /** The total of a search result: what was spent, and what came in when any income matched. */

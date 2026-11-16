@@ -1,6 +1,6 @@
 /* Boot: read storage, pick the first screen, wire events, render (or lock). */
 import './styles.css';
-import { isView } from './lib/constants';
+import { el, isView } from './lib/constants';
 import { installErrorLog } from './lib/errors';
 import { vault } from './data/crypto';
 import { S, loadInitial } from './data/storage';
@@ -9,8 +9,9 @@ import { ui } from './ui/state';
 import { applyTheme, go, moveTabInd, render, updateClock } from './ui/render';
 import { bindEvents } from './events';
 import { bindLock, lock } from './screens/lock';
-import { bindWelcome, showWelcome } from './screens/welcome';
+import { bindWelcome, renderWelcomeInstall, showWelcome } from './screens/welcome';
 import { registerServiceWorker } from './ui/update';
+import { watchInstallPrompt } from './ui/install';
 
 installErrorLog();
 loadInitial();
@@ -26,6 +27,11 @@ ui.view = isView(h) ? h : S.meta.startView === 'add' ? 'add' : 'dashboard';
 bindLock();
 bindWelcome();
 bindEvents();
+// Android Chrome offers its own install prompt; redraw the install card and banner when it does.
+watchInstallPrompt(() => {
+  if (!el('#welcome').hidden) renderWelcomeInstall();
+  if (!vault.lockedBlob) render(false);
+});
 document.querySelectorAll<HTMLElement>('nav .tab').forEach(b =>
   b.addEventListener('click', () => {
     const v = b.dataset.go;

@@ -19,7 +19,7 @@ const MIME={'.html':'text/html','.js':'application/javascript','.json':'applicat
   await cdp.send('WebAuthn.enable');
   const {authenticatorId}=await cdp.send('WebAuthn.addVirtualAuthenticator',{options:{protocol:'ctap2',transport:'internal',hasResidentKey:true,hasUserVerification:true,isUserVerified:true,hasPrf:true,automaticPresenceSimulation:true}});
   await page.goto(ORIGIN+'/index.html');await w(400);
-  ok('app serves from an https origin, declares five local faces and the service worker precaches them',await page.evaluate(()=>location.origin)===ORIGIN&&await page.evaluate(()=>[...document.fonts].length)===5&&await page.evaluate(async()=>{const r=await navigator.serviceWorker.ready;const c=await caches.open('money-tracker-v7');const ks=(await c.keys()).map(k=>new URL(k.url).pathname);return ['/fonts/plex-mono-500.woff','/icon-180.png','/manifest.json'].every(x=>ks.includes(x));}));
+  ok('app serves from an https origin, declares five local faces and the service worker precaches them',await page.evaluate(()=>location.origin)===ORIGIN&&await page.evaluate(()=>[...document.fonts].length)===5&&await page.evaluate(async()=>{const r=await navigator.serviceWorker.ready;const c=await caches.open('money-tracker-v8');const ks=(await c.keys()).map(k=>new URL(k.url).pathname);return ['/fonts/plex-mono-500.woff','/icon-180.png','/manifest.json'].every(x=>ks.includes(x));}));
   await page.fill('#w-first','Shreya');await click('#w-go');
 
   // --- Face ID needs a PIN first

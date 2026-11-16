@@ -34,7 +34,11 @@ export const dm = (s: string) => {
   const d = parseDate(s);
   return d.getDate() + ' ' + MON[d.getMonth()];
 };
+export const thisYear = () => today().slice(0, 4);
 export const monthLabel = (k: string) => MONTHS[+k.slice(5, 7) - 1] + ' ' + k.slice(0, 4);
+/** A period key is a month (YYYY-MM) or a whole year (YYYY). */
+export const isYearKey = (k: string) => k.length === 4;
+export const periodLabel = (k: string) => (isYearKey(k) ? k : monthLabel(k));
 export const daysInMonth = (k: string) => {
   const p = k.split('-').map(Number);
   return new Date(p[0], p[1], 0).getDate();

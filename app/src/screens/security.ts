@@ -1,5 +1,5 @@
 /* Settings → Security: PIN set/change/remove and Face ID enrolment over the wrapped master key. */
-import { el } from '../lib/constants';
+import { bioTitle, el } from '../lib/constants';
 import {
   b64,
   newMaster,
@@ -80,7 +80,7 @@ export async function faceEnrol() {
     return;
   }
   if (!faceSupported()) {
-    toast('Face ID unlock needs the app opened from its https address on an iPhone');
+    toast(bioTitle() + ' unlock needs the app opened from its https address on a phone');
     return;
   }
   const salt = rnd(32),
@@ -90,7 +90,12 @@ export async function faceEnrol() {
       publicKey: {
         challenge,
         rp: { name: 'Money tracker', id: location.hostname },
-        user: { id: rnd(16), name: 'money-tracker', displayName: S.profile.firstName || 'Money tracker' },
+        // One ledger per origin, so one fixed user id: re-enrolling replaces the passkey instead of adding a second one.
+        user: {
+          id: new TextEncoder().encode('money-tracker'),
+          name: 'money-tracker',
+          displayName: S.profile.firstName || 'Money tracker',
+        },
         pubKeyCredParams: [
           { alg: -7, type: 'public-key' },
           { alg: -257, type: 'public-key' },
@@ -120,7 +125,9 @@ export async function faceEnrol() {
       prf = (a.getClientExtensionResults().prf || {}).results;
     }
     if (!prf || !prf.first) {
-      toast('This iPhone cannot derive a key from Face ID yet (needs iOS 18 or later)');
+      toast(
+        'This phone cannot derive a key from its passkey yet (needs iOS 18 or later, or a recent Chrome on Android)',
+      );
       return;
     }
     const w = await wrapMaster(await prfKey(prf.first));
@@ -128,15 +135,15 @@ export async function faceEnrol() {
     save();
     await flushWrites();
     render(false);
-    toast('Face ID unlock is on');
+    toast(bioTitle() + ' unlock is on');
   } catch (e) {
     const err = e as Error | undefined;
-    if (err && err.name !== 'NotAllowedError') toast('Face ID could not be set up: ' + (err.message || err.name));
+    if (err && err.name !== 'NotAllowedError') toast(bioTitle() + ' could not be set up: ' + (err.message || err.name));
   }
 }
 export function faceRemove() {
   vault.wraps.face = null;
   save();
   render(false);
-  toast('Face ID unlock is off · PIN still protects the ledger');
+  toast(bioTitle() + ' unlock is off · PIN still protects the ledger');
 }

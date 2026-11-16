@@ -41,9 +41,14 @@ function prepare() {
         "'.js':'application/javascript','.css':'text/css','.map':'application/json'",
       );
       s = s.replace(
-        "const c=await caches.open('money-tracker-v7');",
+        "const c=await caches.open('money-tracker-v8');",
         "const c=await caches.open((await caches.keys()).find(k=>k.startsWith('money-tracker-'))||'none');",
       );
+      // off an iPhone the module build calls the biometric "fingerprint or face" and no longer names iPhone Settings
+      s = s.replace('/FaceIDunlockOff/', '/FingerprintorfaceunlockOff/');
+      s = s.replace('/Face ID unlock is on/', '/Fingerprint or face unlock is on/');
+      s = s.replace('/Use Face ID or enter your PIN/', '/Use your fingerprint or face, or enter your PIN/');
+      s = s.replace('/Blocked in iPhone Settings/', '/Blocked in phone settings/');
     }
     if (!s.includes(TARGET) && f !== 'secure.test.js')
       throw new Error('could not point ' + f + ' at the preview server');

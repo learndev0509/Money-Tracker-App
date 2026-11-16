@@ -184,6 +184,8 @@ button:active:not(:disabled){transform:scale(.97)}
 .daygroup{border-top:1px solid var(--line);padding-top:4px;margin-top:4px}
 .daygroup:first-child{border-top:0;margin-top:0;padding-top:0}
 .dayhead{display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 0 2px;background:transparent;border:0;border-radius:0;font:inherit;font-size:12px;font-weight:600;color:var(--ink-2);letter-spacing:.02em;min-height:0;cursor:pointer}
+.monthhead{padding-top:0;font-size:13px;color:var(--ink)}
+.monthhead+.daygroup{border-top:0;margin-top:0;padding-top:0}
 .empty{text-align:center;color:var(--ink-2);padding:26px 12px;display:flex;flex-direction:column;gap:10px;align-items:center}
 .empty strong{color:var(--ink);font-size:16px}
 .empty .zero{font-family:var(--mono);font-size:40px;font-weight:600;color:var(--ink);line-height:1}
@@ -259,6 +261,9 @@ input[type=search]::-webkit-search-decoration,input[type=search]::-webkit-search
 .seg button{border:0;border-radius:0;background:transparent;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
 .seg.seg3{grid-template-columns:repeat(3,1fr)}
+.seg.scope{margin-top:0;max-width:260px;margin-left:auto;margin-right:auto;width:100%}
+.seg.scope button{min-height:36px;font-size:14px}
+.prow .chev{margin-left:0}
 .seg svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .picker{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-top:10px;padding:10px 12px;border-radius:14px;min-height:54px}
 .picker .pk{flex:1;min-width:0;display:flex;flex-direction:column}

@@ -86,13 +86,8 @@ test('the History payment filter narrows to UPI rows', async () => {
   await app.click('#hist-filters [data-hf-clear]');
 });
 
-test('the CSV separates payment and account for UPI', async () => {
-  await app.tab('settings');
-  const csv = await app.copyCsv();
-  expect(csv).toMatch(/Online · UPI,HDFC Bank,Swiggy/);
-});
-
 test('a recurring expense can be on UPI and keeps the remembered bank', async () => {
+  await app.tab('settings');
   await app.click('[data-detail="recur|new"]');
   await app.fill('#e-amount', '499');
   await app.click('#sheet .chip[data-cat="Entertainment"]');
@@ -201,10 +196,7 @@ test('a recurring entry can be money in and is added this month with the auto ta
   await expect(app.main.locator('.txrow .tag').first()).toContainText('in');
 });
 
-test('the CSV has a Type column with income rows, and a reload does not duplicate the salary', async () => {
-  const csv = await app.copyCsv();
-  expect(csv).toMatch(/^\uFEFF?Date,Time,Weekday,Type,/);
-  expect(csv).toMatch(/,Income,60000,Salary,Online · Bank account,HDFC Bank,Pay day,yes/);
+test('a reload does not duplicate the salary', async () => {
   await app.reload();
   expect((await app.data()).income.filter((t: any) => t.recurringId)).toHaveLength(1);
   await app.expectNoHorizontalScroll();

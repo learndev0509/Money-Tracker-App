@@ -173,6 +173,30 @@ test('the hero opens Trends with four charts; a mover opens the category sheet o
   await app.click('#sheet button[data-close]');
 });
 
+test('Year shows the year hero, twelve month bars and a row per month; a month row returns to that month', async () => {
+  await app.reload();
+  await app.tab('dashboard');
+  const y = String(new Date().getFullYear());
+  await expect(app.main.locator('.seg.scope [data-scope="month"]')).toHaveClass(/\bon\b/);
+  await expect(app.main.locator('.card h2', { hasText: 'Month by month' })).toHaveCount(1);
+  await app.click('.seg.scope [data-scope="year"]');
+  await expect(app.main.locator('.topbar h1')).toHaveText(y);
+  await expect(app.main.locator('.hero .lbl')).toContainText('Spent so far in ' + y);
+  // Twelve bars, of which only the months up to now are tappable; the rest are stubs.
+  await expect(app.main.locator('.chart svg g')).toHaveCount(12);
+  await expect(app.main.locator('.chart svg g[data-period]')).toHaveCount(new Date().getMonth() + 1);
+  const rows = app.main.locator('.prow[data-period]');
+  await expect(rows.first()).toContainText(/expense/); // only months with expenses get a row
+  await expect(rows.first()).toContainText(/^[A-Z][a-z]+/);
+  await app.click('.card .prow[data-detail^="cat|' + y + '|"]');
+  await expect(app.sheetHead).toContainText(y);
+  await app.click('#sheet button[data-close]');
+  await app.shot('05-dashboard-year');
+  await rows.first().click();
+  await expect(app.main.locator('.seg.scope [data-scope="month"]')).toHaveClass(/\bon\b/);
+  await expect(app.main.locator('.hero .lbl')).toContainText('Spent so far this month');
+});
+
 test('Settings shows the version chip as a label and saves stamp the app version', async () => {
   await app.tab('settings');
   const chip = page().locator('#version-chip');

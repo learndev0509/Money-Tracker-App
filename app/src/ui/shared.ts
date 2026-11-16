@@ -18,9 +18,12 @@ import {
   srcColor,
   sum,
   txIn,
+  txInPeriod,
   vehName,
 } from '../queries/ledger';
-import { MON, esc, needsInstall } from '../lib/constants';
+import type { Mover } from '../queries/compare';
+import { MON, esc, isAndroid, isIOS, needsInstall } from '../lib/constants';
+import { canPromptInstall } from './install';
 import {
   compact,
   daysInMonth,
@@ -170,16 +173,50 @@ export function cashSection(k: string) {
     ${bal < 0 ? '<div class="hint">Below zero: some cash spends came before a withdrawal was logged. Set the real amount to correct it.</div>' : ''}
     <div class="cash-row"><button type="button" data-detail="cashform|withdrawal">Log a withdrawal</button><button type="button" data-detail="cashform|adjust">Set cash in hand</button><button type="button" class="btn-ghost" data-detail="cash|list">History</button></div></section>`;
 }
+/** The steps for this phone: Safari's Share menu on iPhone, Chrome's menu (or its own Install prompt) on Android. */
 export function installStepsHTML() {
-  return `<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px"><li>Open this page in Safari.</li><li>Tap the Share button (the square with an arrow).</li><li>Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol>
-  <div class="hint" style="margin-top:10px">The Home Screen app and this Safari tab keep separate data. If you have already logged expenses here, go to Settings → Copy backup first, then Restore inside the installed app.</div>`;
+  const steps = isIOS()
+    ? [
+        'Open this page in Safari.',
+        'Tap the Share button (the square with an arrow).',
+        'Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.',
+      ]
+    : [
+        'Open this page in Chrome.',
+        'Tap the ⋮ menu at the top right.',
+        'Tap <b>Add to Home screen</b> (or <b>Install app</b>), then <b>Install</b>.',
+      ];
+  const hint = isIOS()
+    ? 'The Home Screen app and this Safari tab keep separate data. If you have already logged expenses here, go to Settings → Copy backup first, then Restore inside the installed app.'
+    : 'The installed app opens full screen with its own icon and keeps everything you have logged in this browser.';
+  return `${canPromptInstall() ? '<button type="button" style="width:100%;margin-bottom:10px" data-install-now>Install app</button>' : ''}<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">${steps.map(s => `<li>${s}</li>`).join('')}</ol>
+  <div class="hint" style="margin-top:10px">${hint}</div>`;
 }
+/** One line for the Settings footer: how to install on this phone. */
+export const installHint = () =>
+  isIOS()
+    ? 'open in Safari, tap Share, then Add to Home Screen.'
+    : isAndroid()
+      ? 'open in Chrome, tap the ⋮ menu, then Add to Home screen.'
+      : 'add it to your phone’s Home Screen from the browser menu.';
 export function installBanner() {
   if (!needsInstall() || ui.installHintHidden) return '';
-  return `<button type="button" class="banner" data-detail="install|how"><span class="grow"><b>Add to your Home Screen</b><span class="small">In a Safari tab, iOS can clear this data after 7 days unused. Tap for the steps.</span></span><span class="chev">›</span></button>`;
+  const why = isIOS()
+    ? 'In a Safari tab, iOS can clear this data after 7 days unused. Tap for the steps.'
+    : 'Opens full screen with its own icon, like an app. Tap for the steps.';
+  return `<button type="button" class="banner" data-detail="install|how"><span class="grow"><b>Add to your Home Screen</b><span class="small">${why}</span></span><span class="chev">›</span></button>`;
+}
+/** The categories that moved most against the previous period, each opening that category in `k`. */
+export function moverRows(ms: Mover[], k: string, prevLabel: string) {
+  return ms
+    .map(
+      m =>
+        `<button type="button" class="prow" data-detail="cat|${k}|${esc(m.c)}"><span class="prow-top">${catIcon(m.c)}<span class="name">${esc(m.c)}<span class="small">${esc(money(m.pv))} ${esc(prevLabel)}</span></span><span class="amt" style="color:${m.d > 0 ? 'var(--danger)' : m.d < 0 ? 'var(--good)' : 'inherit'}">${m.d > 0 ? '▲ ' : m.d < 0 ? '▼ ' : ''}${esc(money(Math.abs(m.d)))}</span><span class="chev">›</span></span></button>`,
+    )
+    .join('');
 }
 export function leftLine(k: string, inc: number) {
-  const left = inc - sum(txIn(k));
+  const left = inc - sum(txInPeriod(k));
   return {
     left,
     html: `<span>${left >= 0 ? 'Left to spend' : 'Spent beyond what came in'}</span><b style="color:${left >= 0 ? 'var(--good)' : 'var(--danger)'}">${esc(money(Math.abs(left)))}</b>`,

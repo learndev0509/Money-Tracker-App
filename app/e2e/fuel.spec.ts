@@ -153,11 +153,8 @@ test('the vehicle sheet lists the fills', async () => {
   await app.shot('02-fuel-month');
 });
 
-test('the CSV has a Vehicle column and removing a vehicle keeps its fills', async () => {
+test('removing a vehicle keeps its fills', async () => {
   await app.tab('settings');
-  const csv = await app.copyCsv();
-  expect(csv.split('\n')[0]).toMatch(/,Vehicle$/m);
-  expect(csv).toMatch(/Fuel,Online · Credit card,HDFC Bank Regalia Gold,,,Swift/);
   await app.click('[data-del-veh]');
   await app.expectStored(d => d.vehicles.length === 1 && d.tx.length === 2, 'one vehicle left, both fills kept');
 });

@@ -47,7 +47,7 @@ src/screens/          one module per screen (add, dashboard, history, settings),
 src/screens/sheets/   the sheet stack (index.ts, with the kind → builder registry) and one module per
                       sheet: expense, income, recurring, cash, calc, trend, period drill-downs, pick,
                       pin, legal; each holds its builder and its save/delete handlers
-src/reports/          backup JSON, CSV, the hand-written PDF
+src/reports/          backup JSON, the hand-written PDF
 src/events/           the delegated listeners: main.ts for the four screens and sheet.ts for the
                       sheet, each a table of handlers keyed by data-* attribute or element id
 tests/unit/           Vitest: migrate against fixtures, calculator and formatting, queries,
@@ -117,7 +117,7 @@ disable comment saying why.
 ## Golden snapshots
 
 `tests/unit/golden.test.ts` renders the four screens in several states, every sheet, the banners,
-the CSV and the PDF from `tests/fixtures/backup-1.8.0.json` with the clock frozen, and compares
+and the PDF from `tests/fixtures/backup-1.8.0.json` with the clock frozen, and compares
 each result character for character with the file of the same name in `tests/golden/`. Any
 refactor that changes output fails there in milliseconds, without a browser. When an output change
 is intended, read the diff Vitest prints, then accept it with `npx vitest run -u` and commit the

@@ -6,7 +6,7 @@ import { clearErrors, problemReport } from '../lib/errors';
 import { FUEL, isMethod } from '../data/model';
 import { S, plainOf, save, snapshots } from '../data/storage';
 import { acct, initials } from '../queries/ledger';
-import { fuel, form, hf, isCalcTarget, isHistSort, ui } from '../ui/state';
+import { fuel, form, hf, isCalcTarget, isHistSort, isScope, ui } from '../ui/state';
 import { toast } from '../ui/toast';
 import { applyTheme, go, render, slideMain } from '../ui/render';
 import { notifySupported, setAlerts } from '../ui/notify';
@@ -27,7 +27,7 @@ import { histBody, refreshHist } from '../screens/history';
 import { wipe } from '../screens/settings';
 import { openSheet } from '../screens/sheets';
 import { faceEnrol, faceRemove } from '../screens/security';
-import { copyOrShow, exportCSV, exportData, importData, restoreData } from '../reports/backup';
+import { copyOrShow, exportData, importData, restoreData } from '../reports/backup';
 import { exportPDF } from '../reports/pdf';
 
 type ButtonHandler = (value: string, b: HTMLButtonElement) => void;
@@ -48,6 +48,15 @@ function toggleFuel(open: boolean) {
     const i = el(S.vehicles.length ? '#fuel-amount' : '#veh-name');
     if (i) i.focus();
   }
+}
+
+/** Move the Dashboard to a month (and, when asked, to the Month or Year scope), sliding in the direction of travel. */
+function goPeriod(v: string, scope?: string) {
+  const dir = v < ui.period ? 'slide-r' : 'slide-l';
+  ui.period = v;
+  if (isScope(scope)) ui.scope = scope;
+  render(false);
+  slideMain(dir);
 }
 
 /** Clicks by the data-* attribute the button carries; the first attribute found in this order wins. */
@@ -141,12 +150,11 @@ const clicksByData: [string, ButtonHandler][] = [
     },
   ],
   [
-    'period',
+    'scope',
     v => {
-      const dir = v < ui.period ? 'slide-r' : 'slide-l';
-      ui.period = v;
+      if (!isScope(v) || v === ui.scope) return;
+      ui.scope = v;
       render(false);
-      slideMain(dir);
     },
   ],
   [
@@ -320,8 +328,6 @@ const clicksById: Record<string, (b: HTMLButtonElement) => void> = {
   export: () => exportData('copy'),
   'export-dl': () => exportData('download'),
   'export-share': () => exportData('share'),
-  csv: () => exportCSV(false),
-  'csv-dl': () => exportCSV(true),
   'import-toggle': () => {
     const box = el('#import-box');
     box.hidden = false;
@@ -375,7 +381,8 @@ const inputsById: Record<string, (t: HTMLInputElement) => void> = {
 const changesById: Record<string, (t: HTMLInputElement) => void> = {
   'h-year': t => {
     ui.histYear = +t.value;
-    ui.histMonth = ui.histYear === +today().slice(0, 4) ? +today().slice(5, 7) : 12;
+    // "All months" (0) stays on; a month moves to the latest one the new year has.
+    if (ui.histMonth) ui.histMonth = ui.histYear === +today().slice(0, 4) ? +today().slice(5, 7) : 12;
     refreshHist();
   },
   'h-month': t => {
@@ -460,6 +467,12 @@ export function bindMain() {
     const detail = target.closest<HTMLElement>('[data-detail]')?.dataset.detail;
     if (detail !== undefined) {
       openSheet(detail);
+      return;
+    }
+    // Anything carrying a period (nav arrows, month rows, chart bars) moves the Dashboard there; data-scope may switch Month/Year with it.
+    const p = target.closest<HTMLElement>('[data-period]');
+    if (p && p.dataset.period) {
+      goPeriod(p.dataset.period, p.dataset.scope);
       return;
     }
     const b = target.closest('button');

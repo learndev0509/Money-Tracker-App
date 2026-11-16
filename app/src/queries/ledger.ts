@@ -19,6 +19,10 @@ export interface Paid {
 export const sum = (arr: { amount: number }[]) => arr.reduce((t, x) => t + (+x.amount || 0), 0);
 /** Expenses in a month, `k` = YYYY-MM. */
 export const txIn = (k: string) => S.tx.filter(t => t.date.slice(0, 7) === k);
+export const txInYear = (y: number) => S.tx.filter(t => +t.date.slice(0, 4) === y);
+export const incInYear = (y: number) => S.income.filter(t => +t.date.slice(0, 4) === y);
+/** Expenses in a period key: a month (YYYY-MM) or a whole year (YYYY). */
+export const txInPeriod = (k: string) => (k.length === 4 ? txInYear(+k) : txIn(k));
 export const incIn = (k: string) => S.income.filter(t => t.date.slice(0, 7) === k);
 export const isFuel = (t: Tx) => t.category === FUEL;
 export const fuelIn = (k: string) => txIn(k).filter(isFuel);

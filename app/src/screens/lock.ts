@@ -1,5 +1,5 @@
 /* Lock screen: PIN keypad and Face ID over the encrypted store. */
-import { KEY, OLD_KEY, SNAP_KEY, el } from '../lib/constants';
+import { KEY, OLD_KEY, SNAP_KEY, bioName, bioTitle, el, isIOS } from '../lib/constants';
 import { thisMonth } from '../lib/dates';
 import { defaults, type Raw } from '../data/model';
 import {
@@ -45,7 +45,12 @@ export function lock() {
   drawDots();
   const f = el('#pin-face');
   f.hidden = !(storedFace() && faceSupported());
-  el('#lock-sub').textContent = f.hidden ? 'Enter your PIN to continue' : 'Use Face ID or enter your PIN';
+  el('#pin-face-label').textContent = 'Unlock with ' + bioName();
+  el('#lock-sub').textContent = f.hidden
+    ? 'Enter your PIN to continue'
+    : isIOS()
+      ? 'Use Face ID or enter your PIN'
+      : 'Use your fingerprint or face, or enter your PIN';
   el('#lock').hidden = false;
   document.body.classList.add('locked');
 }
@@ -143,7 +148,7 @@ export async function tryFaceUnlock() {
     ui.unlocking = false;
     vault.masterKey = null;
     vault.masterRaw = null;
-    if (e && (e as Error).name !== 'NotAllowedError') toast('Face ID did not unlock · use your PIN');
+    if (e && (e as Error).name !== 'NotAllowedError') toast(bioTitle() + ' did not unlock · use your PIN');
   }
 }
 /** Erase everything from the lock screen (forgotten PIN) and start over at the welcome screen. */

@@ -219,7 +219,7 @@ test('erase from the lock screen clears the snapshots too', async () => {
   expect(await page().evaluate(k => localStorage.getItem(k) === null, KEY)).toBe(true);
 });
 
-test('no install card on a non-iOS browser', async () => {
+test('no install card on a desktop browser', async () => {
   await expect(page().locator('#w-install[hidden]')).toHaveCount(1);
   await expect(page().locator('.banner[data-detail="install|how"]')).toHaveCount(0);
 });
@@ -237,7 +237,9 @@ test('iOS Safari gets install steps on the welcome, a banner on the Month screen
     const steps = ios.page.locator('#w-install');
     await expect(steps).toBeVisible();
     await expect(steps).toContainText('Add to your Home Screen first');
+    await expect(steps).toContainText('Open this page in Safari');
     await expect(steps).toContainText('Add to Home Screen');
+    await expect(steps.locator('[data-install-now]')).toHaveCount(0);
     await ios.shot('02-welcome-install');
     await ios.finishWelcome('Shreya');
     const banner = ios.page.locator('.banner[data-detail="install|how"]');
@@ -252,6 +254,58 @@ test('iOS Safari gets install steps on the welcome, a banner on the Month screen
     ios.expectNoErrors();
   } finally {
     await ios.close();
+  }
+});
+
+test('Android Chrome gets the Chrome menu steps, an Install button once the browser offers one, and the banner', async ({
+  browser,
+}) => {
+  const android = await App.open(browser, 'safety-android', {
+    ...PHONE,
+    userAgent:
+      'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36',
+  });
+  try {
+    await android.goto();
+    const steps = android.page.locator('#w-install');
+    await expect(steps).toBeVisible();
+    await expect(steps).toContainText('Add to your Home Screen first');
+    await expect(steps).toContainText('Open this page in Chrome');
+    await expect(steps).toContainText('Add to Home screen');
+    await expect(steps).not.toContainText('Safari');
+    await expect(steps.locator('[data-install-now]')).toHaveCount(0);
+    await android.finishWelcome('Arjun');
+    const banner = android.page.locator('.banner[data-detail="install|how"]');
+    await expect(banner).toHaveCount(1);
+    await expect(banner).toContainText('Opens full screen');
+    await banner.click();
+    await expect(android.sheetHead).toContainText('Add to Home Screen');
+    await expect(android.sheetBody).toContainText('Open this page in Chrome');
+    await expect(android.sheetBody).not.toContainText('Copy backup first');
+    await expect(android.sheetBody.locator('[data-install-now]')).toHaveCount(0);
+    await android.page.keyboard.press('Escape');
+    await expect(android.sheet).toBeHidden();
+    // The browser announces that the app can be installed: the sheet gains an Install button that runs its prompt.
+    await android.page.evaluate(() => {
+      const e = new Event('beforeinstallprompt') as any;
+      e.prompt = () => {
+        (window as any).__prompted = true;
+        return Promise.resolve();
+      };
+      e.userChoice = Promise.resolve({ outcome: 'accepted' });
+      window.dispatchEvent(e);
+    });
+    await banner.click();
+    await expect(android.sheetBody.locator('[data-install-now]')).toHaveCount(1);
+    await android.shot('04-install-sheet-android', false);
+    await android.click('#sheet [data-install-now]');
+    await expect.poll(() => android.page.evaluate(() => (window as any).__prompted)).toBe(true);
+    await expect(android.sheet).toBeHidden();
+    await expect(banner).toHaveCount(0);
+    await android.expectToast(/Installed/);
+    android.expectNoErrors();
+  } finally {
+    await android.close();
   }
 });
 

@@ -101,7 +101,9 @@ test('the app serves from an https origin, declares five local faces and the ser
 });
 
 test('a newer build taking over offers a reload; the first controller does not', async () => {
-  // The first load was claimed by its own worker and showed no prompt.
+  // The first load was claimed by its own worker (activate calls clients.claim) and showed no prompt.
+  await page().evaluate(() => navigator.serviceWorker.ready);
+  await expect.poll(() => page().evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
   await expect(app.toast).not.toHaveClass(/show/);
   // A controlled page that sees a controller change has been updated under it.
   await app.reload();
@@ -119,12 +121,13 @@ test('Face ID controls stay hidden until a PIN exists', async () => {
   await expect(page().locator('[data-face]')).toHaveCount(0);
   await app.setPin('1234');
   await expect(page().locator('[data-face="enrol"]')).toHaveCount(1);
-  expect(await app.flat('#main')).toMatch(/FaceIDunlockOff/);
+  expect(await app.flat('#main')).toMatch(/FingerprintorfaceunlockOff/);
 });
 
 test('enrolling creates a passkey and a Face ID wrapper beside the PIN wrapper', async () => {
   await app.click('[data-face="enrol"]');
-  await expect(app.toastText).toContainText('Face ID unlock is on', { timeout: 10_000 });
+  // Chromium's desktop user agent is not an iPhone, so the feature goes by its generic name here.
+  await expect(app.toastText).toContainText('Fingerprint or face unlock is on', { timeout: 10_000 });
   await app.expectRaw(r => {
     const b = JSON.parse(r);
     return !!(b.enc === 2 && b.pin && b.face && b.face.id && b.face.salt && b.face.ct);
@@ -143,7 +146,7 @@ test('locked on reload with the Face ID button offered; Face ID unlocks the encr
   await app.reload();
   await expect(app.lock).toBeVisible();
   await expect(page().locator('#pin-face')).toBeVisible();
-  await expect(page().locator('#lock-sub')).toContainText('Use Face ID or enter your PIN');
+  await expect(page().locator('#lock-sub')).toContainText('Use your fingerprint or face, or enter your PIN');
   await app.click('#pin-face');
   await app.expectUnlocked();
   await expect(app.main).toContainText('₹150');
@@ -241,6 +244,6 @@ test('alerts can be turned off and stored; removing the over budget clears the b
   });
   await app.tab('dashboard');
   await app.tab('settings');
-  await expect(app.main).toContainText('Blocked in iPhone Settings');
+  await expect(app.main).toContainText('Blocked in phone settings');
   app.expectNoErrors();
 });

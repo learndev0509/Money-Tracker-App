@@ -8,6 +8,7 @@ import { cashBalance } from '../queries/cash';
 import { ui, type Draft } from '../ui/state';
 import { toast } from '../ui/toast';
 import { go, render } from '../ui/render';
+import { promptInstall } from '../ui/install';
 import { chooseAccount, remember, setMethodOn } from '../ui/pay';
 import { pickListHTML } from '../ui/picker';
 import {
@@ -77,6 +78,16 @@ const clicksByData: [string, ButtonHandler][] = [
       ui.installHintHidden = true;
       closeSheet();
       render(false);
+    },
+  ],
+  [
+    'installNow',
+    async () => {
+      if (!(await promptInstall())) return;
+      ui.installHintHidden = true;
+      closeSheet();
+      render(false);
+      toast('Installed · open Money tracker from your Home Screen');
     },
   ],
   [

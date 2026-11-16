@@ -49,8 +49,8 @@ export default tseslint.config(
     rules: {
       // App wraps page.fill/click/selectOption on purpose: the specs read like the original scripts
       'playwright/prefer-locator': 'off',
-      // App's expect* helpers and visual.spec's shot() are the assertions in many tests
-      'playwright/expect-expect': ['error', { assertFunctionPatterns: ['expect', '^shot$'] }],
+      // App's expect* helpers and visual.spec's shot() / sheetShot() are the assertions in many tests
+      'playwright/expect-expect': ['error', { assertFunctionPatterns: ['expect', '^(shot|sheetShot)$'] }],
       // secure and visual skip on a condition (remote server, no baselines)
       'playwright/no-skipped-test': ['error', { allowConditional: true }],
     },

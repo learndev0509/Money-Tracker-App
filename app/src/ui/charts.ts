@@ -9,12 +9,15 @@ export interface DonutPart {
   color: string;
   detail: string;
 }
-/** One bar of a bar chart; `on` highlights it, `detail` makes it tappable. */
+/** One bar of a bar chart; `on` highlights it, `detail` opens a sheet on tap, `period` opens that month on the Dashboard. */
 export interface Bar {
   label: string;
   v: number;
   on?: boolean;
   detail?: string;
+  period?: string;
+  /** Drawn as a stub: a month still ahead. */
+  future?: boolean;
 }
 /* charts */
 export function arcPath(cx: number, cy: number, r: number, a0: number, a1: number) {
@@ -108,7 +111,12 @@ export function barsSVG(items: Bar[]) {
     const px = L + i * slot + (slot - bw) / 2,
       h = x.v ? Math.max(3, (x.v / max) * plot) : 0,
       y = T + plot - h;
-    out += `<g ${x.detail ? `data-detail="${esc(x.detail)}" style="cursor:pointer"` : ''}><title>${esc(x.label)}: ${esc(money(x.v))}</title>${x.v ? `<rect class="gbar" x="${f(px)}" y="${f(y)}" width="${f(bw)}" height="${f(h)}" rx="4" style="fill:var(--accent);opacity:${x.on ? 1 : 0.55};--d:${i * 50}ms"/><text x="${f(px + bw / 2)}" y="${f(y - 4)}" text-anchor="middle" font-size="9" style="fill:var(--ink-2);font-family:var(--font)">${esc(compact(x.v))}</text>` : `<rect x="${f(px)}" y="${T + plot - 2}" width="${f(bw)}" height="2" rx="1" style="fill:var(--line)"/>`}<text x="${f(px + bw / 2)}" y="${H - 7}" text-anchor="middle" font-size="9.5" style="fill:var(${x.on ? '--ink' : '--muted'});font-family:var(--font)">${esc(x.label)}</text></g>`;
+    const tap = x.detail
+      ? `data-detail="${esc(x.detail)}" style="cursor:pointer"`
+      : x.period && !x.future
+        ? `data-period="${esc(x.period)}" data-scope="month" style="cursor:pointer"`
+        : '';
+    out += `<g ${tap}><title>${esc(x.label)}: ${esc(money(x.v))}</title><rect x="${f(px - 2)}" y="${T}" width="${f(bw + 4)}" height="${plot}" fill="transparent"/>${x.v ? `<rect class="gbar" x="${f(px)}" y="${f(y)}" width="${f(bw)}" height="${f(h)}" rx="4" style="fill:var(--accent);opacity:${x.on ? 1 : 0.55};--d:${i * 50}ms"/><text x="${f(px + bw / 2)}" y="${f(y - 4)}" text-anchor="middle" font-size="9" style="fill:var(--ink-2);font-family:var(--font)">${esc(compact(x.v))}</text>` : `<rect x="${f(px)}" y="${T + plot - 2}" width="${f(bw)}" height="2" rx="1" style="fill:var(--line);opacity:${x.future ? 0.5 : 1}"/>`}<text x="${f(px + bw / 2)}" y="${H - 7}" text-anchor="middle" font-size="9.5" style="fill:var(${x.on ? '--ink' : '--muted'});font-family:var(--font)">${esc(x.label)}</text></g>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="height:auto" role="img">${out}</svg>`;
 }

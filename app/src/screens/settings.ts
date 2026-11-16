@@ -5,7 +5,7 @@ import { readErrors } from '../lib/errors';
 import { SUPPORT_EMAIL } from '../lib/constants';
 import { S, snapshots } from '../data/storage';
 import { billSoFar, catColor, initials, payLabel } from '../queries/ledger';
-import { APP_BUILD, APP_VERSION, SNAPS, esc, ordinal } from '../lib/constants';
+import { APP_BUILD, APP_VERSION, SNAPS, bioName, bioTitle, esc, isIOS, ordinal } from '../lib/constants';
 import { dateKey, dm, midDate, money, monthLabel, thisMonth } from '../lib/dates';
 import { canDownload, canShareFiles, ui } from '../ui/state';
 import { recurLabel } from '../queries/recurring';
@@ -16,7 +16,7 @@ import { CAT_ICON, SEARCH_SVG, glyph } from '../lib/icons';
 import { cashBalance } from '../queries/cash';
 import { FUEL } from '../data/model';
 import { vehInputHTML } from './add';
-import { catIcon } from '../ui/shared';
+import { catIcon, installHint } from '../ui/shared';
 import { budgetRows, budgetText } from '../queries/budgets';
 import { notifyState } from '../ui/notify';
 /* ---------- SETTINGS ---------- */
@@ -81,8 +81,8 @@ export function rSettings() {
       <div class="${pinOn() ? 'two' : ''}" style="margin-top:10px">${pinOn() ? `<button type="button" data-detail="pin|change">Change PIN</button><button type="button" data-detail="pin|remove">Remove PIN</button>` : `<button type="button" data-detail="pin|set">Set a 4-digit PIN</button>`}</div>
       ${
         pinOn()
-          ? `<div class="kv" style="margin-top:12px"><span>Face ID unlock</span><b>${faceOn() ? 'On' : 'Off'}</b></div>
-      ${faceSupported() ? `<button type="button" style="width:100%;margin-top:8px" data-face="${faceOn() ? 'remove' : 'enrol'}">${faceOn() ? 'Turn off Face ID unlock' : 'Unlock with Face ID'}</button><div class="hint" style="margin-top:6px">${faceOn() ? 'Face ID opens the same encrypted ledger; the PIN stays as the fallback. The passkey behind it syncs with iCloud Keychain.' : 'Creates a passkey on this iPhone (iOS 18 or later) whose secret unlocks the ledger. The PIN stays as the fallback.'}</div>` : '<div class="hint" style="margin-top:6px">Face ID unlock needs the app opened from its https address, ideally from the Home Screen, on an iPhone with iOS 18 or later.</div>'}`
+          ? `<div class="kv" style="margin-top:12px"><span>${bioTitle()} unlock</span><b>${faceOn() ? 'On' : 'Off'}</b></div>
+      ${faceSupported() ? `<button type="button" style="width:100%;margin-top:8px" data-face="${faceOn() ? 'remove' : 'enrol'}">${faceOn() ? 'Turn off ' + bioName() + ' unlock' : 'Unlock with ' + bioName()}</button><div class="hint" style="margin-top:6px">${faceOn() ? bioTitle() + ' opens the same encrypted ledger; the PIN stays as the fallback. The passkey behind it lives in your phone’s passkey store' + (isIOS() ? ' (iCloud Keychain).' : ' (Google Password Manager on Android).') : 'Creates a passkey on this phone' + (isIOS() ? ' (iOS 18 or later)' : ' (a recent Chrome on Android)') + ' whose secret unlocks the ledger. The PIN stays as the fallback.'}</div>` : `<div class="hint" style="margin-top:6px">${bioTitle()} unlock needs the app opened from its https address, ideally from the Home Screen, on ${isIOS() ? 'an iPhone with iOS 18 or later' : 'a phone with passkeys (iOS 18 or later, or a recent Chrome on Android)'}.</div>`}`
           : ''
       }</section>
     <section class="card"><h2>Bank accounts</h2><div class="list" style="margin-top:8px">${list('bank')}</div>
@@ -105,7 +105,7 @@ export function rSettings() {
     <section class="card"><div class="card-head"><h2>Monthly budgets</h2><span class="sub">${budgeted.length ? budgeted.length + ' set' : 'None yet'}</span></div>
       ${budgeted.length ? `<div class="list">${budgeted.map(c => `<div class="item">${catIcon(c)}<span class="name">${esc(c)}<span class="small">${esc(budgetText(rowsNow.find(r => r.c === c) ?? { left: 0 }))} this month</span></span><span class="row" style="gap:4px"><span class="hint">₹</span><input class="sm" type="text" inputmode="numeric" data-budget="${esc(c)}" value="${S.budgets[c]}" aria-label="Monthly budget for ${esc(c)}" style="width:92px"><button type="button" class="btn-ghost btn-sm" data-del-budget="${esc(c)}" aria-label="Remove budget for ${esc(c)}">✕</button></span></div>`).join('')}</div>` : ''}
       ${unbudgeted.length ? `<div class="row" style="margin-top:10px;gap:6px"><select id="budget-cat" class="sm" style="flex:1;min-height:44px;font-size:15px" aria-label="Category">${unbudgeted.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select><span class="row" style="gap:4px;flex:1"><span class="hint">₹</span><input id="budget-amt" type="text" inputmode="numeric" placeholder="per month" aria-label="Budget amount"></span><button type="button" id="budget-add">Add</button></div>` : '<div class="hint" style="margin-top:8px">Every category has a budget.</div>'}
-      <div class="kv" style="margin-top:12px"><span>Alerts on this phone</span><b>${{ on: 'On', off: 'Off', blocked: 'Blocked in iPhone Settings', unsupported: 'Not available here' }[notifyState()]}</b></div>
+      <div class="kv" style="margin-top:12px"><span>Alerts on this phone</span><b>${{ on: 'On', off: 'Off', blocked: 'Blocked in phone settings', unsupported: 'Not available here' }[notifyState()]}</b></div>
       ${notifyState() === 'on' ? '<button type="button" style="width:100%;margin-top:8px" data-alerts="off">Turn off alerts</button>' : notifyState() === 'off' ? '<button type="button" style="width:100%;margin-top:8px" data-alerts="on">Allow alerts</button>' : ''}
       <div class="hint" style="margin-top:8px">The Dashboard shows what is left, turns amber at 80% and red when a budget is exceeded. A toast warns the moment a save crosses 80%; at 90% and when a budget is exceeded the app also posts a notification (if allowed) and the Home Screen icon shows how many budgets are over.</div></section>
     <section class="card"><div class="card-head"><h2>Recurring</h2><span class="sub">Expenses and money in, added each month</span></div>
@@ -115,11 +115,11 @@ export function rSettings() {
       <div class="kv" style="margin-top:10px"><span>Expenses stored on this device</span><b>${S.tx.length}</b></div>
       <div class="kv" style="margin-top:4px"><span>Last backup</span><b>${lastB ? esc(midDate(dateKey(new Date(lastB)))) : 'never'}</b></div>
       ${canShareFiles() ? '<button type="button" class="btn-primary" style="margin-top:10px" id="export-share">Save backup to Files</button>' : ''}
-      <div class="two" style="margin-top:10px"><button type="button" id="export">Copy backup</button>${canDownload ? '<button type="button" id="export-dl">Download backup</button>' : ''}<button type="button" id="csv">Copy CSV</button>${canDownload ? '<button type="button" id="csv-dl">Download CSV</button>' : ''}</div>
+      <div class="two" style="margin-top:10px"><button type="button" id="export">Copy backup</button>${canDownload ? '<button type="button" id="export-dl">Download backup</button>' : ''}</div>
       <div class="row" style="margin-top:10px;gap:6px"><select id="pdf-month" class="sm" style="flex:1;min-height:44px;font-size:15px" aria-label="Report month">${reportMonths.map(m => `<option value="${m}">${esc(monthLabel(m))}</option>`).join('')}</select><button type="button" id="pdf-dl" data-pdf="">PDF report</button></div>
       <button type="button" style="width:100%;margin-top:10px" id="import-toggle">Restore from a backup</button>
       <div id="import-box" hidden style="margin-top:10px"><textarea id="import-text" placeholder="Paste a backup here"></textarea><div class="two" style="margin-top:8px"><input type="file" id="import-file" accept="application/json,.json" style="min-height:44px"><button type="button" id="import">Restore backup</button></div><div class="hint" style="margin-top:6px">Restoring replaces everything on this device.</div></div>
-      <div class="hint" style="margin-top:8px">The backup is the full ledger as JSON; the CSV opens in Excel or Numbers; the PDF is a month's statement with a running balance, by category and paid with.${canDownload ? '' : ' Downloads are available on your own hosted copy; here, Copy and paste into Notes.'}</div>
+      <div class="hint" style="margin-top:8px">The backup is the full ledger as JSON; the PDF is a month's statement with a running balance, by category and paid with.${canDownload ? '' : ' Downloads are available on your own hosted copy; here, Copy and paste into Notes.'}</div>
       ${
         snaps.length
           ? `<h3>Automatic copies</h3><div class="list">${snaps
@@ -136,7 +136,7 @@ export function rSettings() {
       <div class="two" style="margin-top:10px"><button type="button" id="report-copy">Copy report</button>${SUPPORT_EMAIL ? '<button type="button" id="report-mail">Email report</button>' : ''}${errs.length ? '<button type="button" class="btn-ghost" data-clear-errors>Clear log</button>' : ''}</div></section>
     <section class="card"><h2>Danger zone</h2>
       ${ui.pending === 'wipe' ? `<div class="confirm" style="margin-top:10px">Delete every expense? <button type="button" class="btn-sm btn-danger" id="wipe">Yes, delete all</button><button type="button" class="btn-sm" data-cancel>No</button></div>` : `<button type="button" class="btn-danger" style="margin-top:10px" data-ask="wipe">Delete all expenses</button>`}</section>
-    <div class="hint" style="text-align:center">Money tracker by Zestera · open in Safari, tap Share, then Add to Home Screen.</div>
+    <div class="hint" style="text-align:center">Money tracker by Zestera · ${installHint()}</div>
     <div class="row" style="justify-content:center;gap:4px"><button type="button" class="btn-link btn-sm" data-detail="privacy|app">Privacy</button><span class="hint">·</span><button type="button" class="btn-link btn-sm" data-detail="terms|app">Terms</button></div>
     <div style="text-align:center;margin-top:6px"><span class="chip sm" id="version-chip"><span class="t">Version ${APP_VERSION}</span><span class="small">· ${esc(midDate(APP_BUILD))}</span></span></div></div>`;
 }

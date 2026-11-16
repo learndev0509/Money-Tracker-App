@@ -31,7 +31,10 @@ export interface PayState {
 export const ui = {
   view: 'dashboard' as View,
   period: thisMonth(),
+  /** What the Dashboard shows: the month in `period`, or that month's whole year. */
+  scope: 'month' as Scope,
   histYear: +today().slice(0, 4),
+  /** 1–12, or 0 for the whole year ("All months" in the Month dropdown). */
   histMonth: +today().slice(5, 7),
   histQuery: '',
   /** A delete awaiting its Yes/No, as 'kind:id'. */
@@ -53,6 +56,8 @@ export const ui = {
   unlocking: false,
 };
 
+export type Scope = 'month' | 'year';
+export const isScope = (x: unknown): x is Scope => x === 'month' || x === 'year';
 export const HSORT = {
   new: 'Newest first',
   old: 'Oldest first',

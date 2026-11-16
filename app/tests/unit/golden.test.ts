@@ -16,7 +16,6 @@ import { rSettings } from '../../src/screens/settings';
 import { sheetContent } from '../../src/screens/sheets';
 import { setMethodOn } from '../../src/ui/pay';
 import { backupBanner, budgetBanner, installStepsHTML } from '../../src/ui/shared';
-import { csvText } from '../../src/reports/backup';
 import { monthReportPDF } from '../../src/reports/pdf';
 import backup from '../fixtures/backup-1.8.0.json';
 
@@ -54,6 +53,8 @@ const SHEETS = [
   'pin|set',
   'pin|change',
   'pin|remove',
+  'cat|2026|Food',
+  'acct|2026|cash',
   'privacy|app',
   'terms|app',
   'install|how',
@@ -63,6 +64,7 @@ function resetUi() {
   Object.assign(ui, {
     view: 'dashboard',
     period: thisMonth(),
+    scope: 'month',
     histYear: +today().slice(0, 4),
     histMonth: +today().slice(5, 7),
     histQuery: '',
@@ -123,6 +125,15 @@ describe('screens', () => {
     ui.period = '2026-07';
     await expect(rDash()).toMatchFileSnapshot(golden('dashboard-empty-month.html'));
   });
+  it('dashboard, this year', async () => {
+    ui.scope = 'year';
+    await expect(rDash()).toMatchFileSnapshot(golden('dashboard-year.html'));
+  });
+  it('dashboard, a year with nothing', async () => {
+    ui.scope = 'year';
+    ui.period = '2025-06';
+    await expect(rDash()).toMatchFileSnapshot(golden('dashboard-year-empty.html'));
+  });
   it('add', async () => {
     await expect(rAdd()).toMatchFileSnapshot(golden('add.html'));
   });
@@ -161,6 +172,10 @@ describe('screens', () => {
     hf.sort = 'old';
     ui.histMonth = 7;
     await expect(rHist()).toMatchFileSnapshot(golden('history-oldest-empty.html'));
+  });
+  it('history with the Month dropdown on All months: the whole year, one card per month', async () => {
+    ui.histMonth = 0;
+    await expect(rHist()).toMatchFileSnapshot(golden('history-all-months.html'));
   });
   it('settings', async () => {
     await expect(rSettings()).toMatchFileSnapshot(golden('settings.html'));
@@ -203,9 +218,6 @@ describe('pieces and reports', () => {
     await expect(backupBanner() + '\n' + budgetBanner() + '\n' + installStepsHTML()).toMatchFileSnapshot(
       golden('banners.html'),
     );
-  });
-  it('CSV', async () => {
-    await expect(csvText()).toMatchFileSnapshot(golden('export.csv'));
   });
   it('PDF report', async () => {
     const { bytes, name } = monthReportPDF('2026-10');

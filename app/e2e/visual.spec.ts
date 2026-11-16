@@ -56,6 +56,9 @@ const shot = (name: string) =>
     fullPage: true,
     stylePath: path.resolve(import.meta.dirname, 'visual.css'),
   });
+// a sheet is a fixed overlay: a full-page capture stitches it at a different offset each time once the page
+// behind it is long, so sheets are captured at viewport size, which is what a phone shows anyway
+const sheetShot = (name: string) => expect(app.page).toHaveScreenshot(name + '.png');
 
 test('Month screen', async () => {
   await app.tab('dashboard');
@@ -87,13 +90,13 @@ test('Add expense', async () => {
 test('Expense sheet', async () => {
   await app.tab('dashboard');
   await app.click('#main .txrow');
-  await shot('sheet-expense');
+  await sheetShot('sheet-expense');
   await app.click('#sheet button[data-close]');
 });
 
 test('Trends sheet', async () => {
   await app.click('.hero.tap');
-  await shot('sheet-trends');
+  await sheetShot('sheet-trends');
   await app.click('#sheet button[data-close]');
 });
 

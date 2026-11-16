@@ -1,4 +1,16 @@
-import { addMonths, compact, daysInMonth, dm, longDate, money, monthLabel, pct, shortDate } from '../../lib/dates';
+import {
+  addMonths,
+  compact,
+  daysInMonth,
+  dm,
+  isYearKey,
+  longDate,
+  money,
+  monthLabel,
+  pct,
+  periodLabel,
+  shortDate,
+} from '../../lib/dates';
 import {
   acctName,
   billSoFar,
@@ -9,6 +21,7 @@ import {
   sortTx,
   sum,
   txIn,
+  txInPeriod,
   vehName,
 } from '../../queries/ledger';
 import { SheetView } from './index';
@@ -65,9 +78,11 @@ export function daySheet(p: string[]): SheetView {
       : '<div class="empty"><span>Nothing was spent on this day.</span></div>',
   };
 }
+/** A category or account within a month, or within a whole year when `p[1]` is a year key. */
 export function catAcctSheet(p: string[], kind: 'cat' | 'acct'): SheetView {
   const k = p[1],
-    all = txIn(k),
+    year = isYearKey(k),
+    all = txInPeriod(k),
     mt = sum(all);
   const items = (
     kind === 'cat'
@@ -78,7 +93,7 @@ export function catAcctSheet(p: string[], kind: 'cat' | 'acct'): SheetView {
     title = kind === 'cat' ? p[2] : acctName(p[2]) + (p[3] === 'upi' ? ' · UPI' : '');
   const days = groupBy(items, t => t.date).sort(byValue)[0];
   const budget =
-    kind === 'cat' && S.budgets[p[2]] > 0
+    kind === 'cat' && !year && S.budgets[p[2]] > 0
       ? { b: S.budgets[p[2]], left: S.budgets[p[2]] - total, ratio: total / S.budgets[p[2]] }
       : null;
   const bill = kind === 'acct' ? billSoFar(p[2]) : null;
@@ -96,14 +111,14 @@ export function catAcctSheet(p: string[], kind: 'cat' | 'acct'): SheetView {
     cashLine;
   return {
     title,
-    sub: monthLabel(k),
+    sub: periodLabel(k),
     body:
       items.length || budget || bill
         ? `${
             items.length
               ? tiles([
                   ['Total', money(total)],
-                  ['Of month', pct(total, mt) + '%'],
+                  [year ? 'Of year' : 'Of month', pct(total, mt) + '%'],
                   ['Expenses', items.length],
                   ['Avg each', compact(total / items.length)],
                 ])
@@ -111,7 +126,7 @@ export function catAcctSheet(p: string[], kind: 'cat' | 'acct'): SheetView {
           }${extra}
       ${items.length ? (kind === 'cat' ? `<h3>Paid with</h3><div class="list">${acctRows(items, total, 'cash', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'bank', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'upi', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'card', id => 'acct|' + k + '|' + id)}</div>` : `<h3>By category</h3><div class="list">${catRows(items, total, c => 'cat|' + k + '|' + c)}</div>`) : ''}
       ${days ? `<div class="kv" style="margin-top:12px"><span>Heaviest day</span><b>${esc(shortDate(days.key))} · ${esc(money(days.v))}</b></div>` : ''}
-      ${items.length ? `<h3>Expenses</h3><div class="list">${items.map(t => txRow(t)).join('')}</div>` : '<div class="hint" style="margin-top:12px">No expenses here this month.</div>'}`
+      ${items.length ? `<h3>Expenses</h3><div class="list">${items.map(t => txRow(t)).join('')}</div>` : `<div class="hint" style="margin-top:12px">No expenses here this ${year ? 'year' : 'month'}.</div>`}`
         : '<div class="empty"><span>No expenses here.</span></div>',
   };
 }

@@ -129,6 +129,7 @@ test('History has no charts, five dropdowns defaulting to now, and lists newest 
   ).toBe('h-year,h-month,h-cat,h-method,h-sort');
   await expect(page().locator('#h-year')).toHaveValue(String(now.getFullYear()));
   await expect(page().locator('#h-month')).toHaveValue(String(now.getMonth() + 1));
+  await expect(page().locator('#h-month option').first()).toHaveText('All months');
   expect(
     await page()
       .locator('#h-month option')
@@ -250,6 +251,16 @@ test('a past year appears in the dropdown and opens on December; a future-dated 
   await expect(histBody()).toContainText('March 2025 · 1 expense');
   await expect(histBody()).toContainText('Old one');
   await app.shot('06-history');
+  // "All" lists the whole year as one card per month, and survives a change of year.
+  await app.select('#h-month', '0');
+  await expect(page().locator('#h-month option:checked')).toHaveText('All months');
+  await expect(histBody()).toContainText('2025 · 1 expense');
+  await expect(histBody().locator('.monthhead')).toHaveText(/March 2025 · 1/);
+  await expect(histBody()).toContainText('Old one');
+  await app.select('#h-year', String(new Date().getFullYear()));
+  await expect(page().locator('#h-month')).toHaveValue('0');
+  await expect(histBody()).toContainText(new Date().getFullYear() + ' · ');
+  await expect(histBody().locator('.monthhead').first()).toBeVisible();
   await app.patch(d => {
     d.tx = d.tx.filter((t: any) => t.id !== 'old' && t.id !== 'fut');
   });

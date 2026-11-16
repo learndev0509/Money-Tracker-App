@@ -36,7 +36,7 @@ export async function setAlerts(on: boolean) {
     }
   }
   if (perm !== 'granted') {
-    toast('Notifications are blocked for this app in iPhone Settings');
+    toast('Notifications are blocked for this app in your phone’s settings');
     render(false);
     return;
   }

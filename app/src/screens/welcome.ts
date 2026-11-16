@@ -1,4 +1,4 @@
-/* First run: asks for a name, and on iPhone shows the Add to Home Screen steps. */
+/* First run: asks for a name, and on a phone shows the Add to Home Screen steps for that phone. */
 import { el, greetingWord, needsInstall } from '../lib/constants';
 import { thisMonth } from '../lib/dates';
 import { S, save } from '../data/storage';
@@ -6,16 +6,28 @@ import { ui } from '../ui/state';
 import { toast } from '../ui/toast';
 import { render } from '../ui/render';
 import { installStepsHTML } from '../ui/shared';
+import { promptInstall } from '../ui/install';
 import { openSheet } from './sheets';
 
-export function showWelcome() {
-  const w = el('#welcome'),
-    wi = el('#w-install');
-  wi.hidden = !needsInstall();
+/** The install card on the welcome screen; redrawn when the browser starts (or stops) offering its own Install prompt. */
+export function renderWelcomeInstall() {
+  const wi = el('#w-install');
+  wi.hidden = !needsInstall() || ui.installHintHidden;
   if (!wi.hidden) wi.innerHTML = '<h2>Add to your Home Screen first</h2>' + installStepsHTML();
+}
+export function showWelcome() {
+  const w = el('#welcome');
+  renderWelcomeInstall();
   w.hidden = false;
   w.scrollTop = 0;
   document.body.classList.add('locked');
+}
+/** The Install button on the welcome card: the browser's prompt; once accepted the card has done its job. */
+async function installFromWelcome() {
+  if (!(await promptInstall())) return;
+  ui.installHintHidden = true;
+  el('#w-install').hidden = true;
+  toast('Installed · open Money tracker from your Home Screen');
 }
 export function finishWelcome() {
   const first = String(el('#w-first').value || '')
@@ -46,6 +58,10 @@ export function finishWelcome() {
 export function bindWelcome() {
   el('#w-go').addEventListener('click', finishWelcome);
   el('#welcome').addEventListener('click', e => {
+    if ((e.target as HTMLElement).closest('[data-install-now]')) {
+      void installFromWelcome();
+      return;
+    }
     const detail = (e.target as HTMLElement).closest<HTMLElement>('[data-detail]')?.dataset.detail;
     if (detail !== undefined) {
       el('#sheet').classList.add('over');

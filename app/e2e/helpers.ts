@@ -155,12 +155,6 @@ export class App {
     if (method) await this.page.click(`[data-method="${method}"]`);
     await this.page.click('#save-tx');
   }
-  /** Copy CSV from Settings. Headless Chromium has no clipboard, so the text lands in the import box. */
-  async copyCsv() {
-    await this.click('#csv');
-    await expect(this.page.locator('#import-text')).toHaveValue(/^\uFEFF?Date,Time,Weekday/);
-    return this.page.locator('#import-text').inputValue();
-  }
   /** Set a PIN from Settings through the pin sheet. */
   async setPin(pin: string) {
     await this.click('[data-detail="pin|set"]');

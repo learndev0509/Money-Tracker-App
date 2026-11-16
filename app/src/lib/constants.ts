@@ -69,10 +69,23 @@ export const isIOS = () => {
     return false;
   }
 };
-export const needsInstall = () => {
+export const isAndroid = () => {
   try {
-    return isIOS() && !navigator.standalone && !window.matchMedia('(display-mode: standalone)').matches;
+    return /Android/i.test(navigator.userAgent);
   } catch (e) {
     return false;
   }
 };
+/** True when the page runs as the installed Home Screen app rather than in a browser tab. */
+export const isInstalled = () => {
+  try {
+    return !!navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  } catch (e) {
+    return false;
+  }
+};
+/** The install card shows on any phone, iPhone or Android, until the app is on the Home Screen. */
+export const needsInstall = () => (isIOS() || isAndroid()) && !isInstalled();
+/** What this phone calls its biometric unlock: Face ID on iPhone, fingerprint or face elsewhere. */
+export const bioName = () => (isIOS() ? 'Face ID' : 'fingerprint or face');
+export const bioTitle = () => (isIOS() ? 'Face ID' : 'Fingerprint or face');

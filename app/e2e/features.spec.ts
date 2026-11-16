@@ -170,13 +170,11 @@ test('a reload does not add the recurring entry twice, and it can be paused', as
   await expect(app.main).toContainText('paused');
 });
 
-test('CSV copy produces header plus three rows and CSV download fires', async () => {
-  await expect(page().locator('#csv')).toHaveCount(1);
-  await expect(page().locator('#csv-dl')).toHaveCount(1);
-  const csv = await app.copyCsv();
-  expect(csv.split(/\r?\n/), 'header + 3 rows').toHaveLength(4);
-  const [dl] = await Promise.all([page().waitForEvent('download'), app.click('#csv-dl')]);
-  expect(dl.suggestedFilename()).toMatch(/\.csv$/);
+test('Backup offers the JSON backup only: no CSV buttons', async () => {
+  await app.tab('settings');
+  await expect(page().locator('#export')).toHaveCount(1);
+  await expect(page().locator('#csv, #csv-dl')).toHaveCount(0);
+  await expect(app.main).not.toContainText('CSV');
 });
 
 test('the backup reminder shows for old data never backed up, goes after a backup, and returns after 31 days', async () => {
