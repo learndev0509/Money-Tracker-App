@@ -1,6 +1,6 @@
 # Money tracker — handoff
 
-Version 1.10.0 · 16 November 2026 · Zestera
+Version 1.11.0 · 16 November 2026 · Zestera
 
 This is the engineering handoff for the Money tracker web app: what it is, what was built and why, how it is put together, how to change it, and what is still open. The user-facing description of every feature is in `Money tracker - Features and How it works.md`; this file does not repeat it.
 
