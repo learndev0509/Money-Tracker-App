@@ -9,6 +9,9 @@ app/e2e/.generated/
 app/e2e/shots/
 tests/shots/
 
+# worktrees the Claude app creates beside the checkout
+.claude/worktrees/
+
 # local editor and OS files
 .DS_Store
 Thumbs.db
