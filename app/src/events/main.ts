@@ -9,7 +9,7 @@ import { acct, initials } from '../queries/ledger';
 import { fuel, form, hf, isCalcTarget, isScope, ui } from '../ui/state';
 import { toast } from '../ui/toast';
 import { applyTheme, go, render, slideMain } from '../ui/render';
-import { notifySupported, setAlerts } from '../ui/notify';
+import { notifySupported, setAlerts, setRecurAlerts } from '../ui/notify';
 import { remember, setMethodOn } from '../ui/pay';
 import {
   addVehicle,
@@ -255,6 +255,7 @@ const clicksByData: [string, ButtonHandler][] = [
     },
   ],
   ['alerts', v => setAlerts(v === 'on')],
+  ['recurAlerts', v => setRecurAlerts(v === 'on')],
   [
     'delBudget',
     v => {

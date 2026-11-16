@@ -232,6 +232,63 @@ test('crossing 80% toasts but does not notify; 90% and exceeding each post one n
   expect(await notes()).toHaveLength(2);
 });
 
+test('a recurring entry added on open toasts and posts one notification naming it; the setting turns it off', async () => {
+  // patch() runs its function inside the page, so the month is computed there, not closed over.
+  await app.patch(d => {
+    const n = new Date(),
+      tm = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
+    d.recurring.push({
+      id: 'r-netflix',
+      kind: 'expense',
+      amount: 199,
+      category: 'Entertainment',
+      method: 'cash',
+      accountId: 'cash',
+      day: 1,
+      note: 'Netflix',
+      active: true,
+      since: tm,
+      lastApplied: '',
+    });
+  });
+  await app.reload();
+  await app.expectToast(/Added automatically: Netflix ₹199/);
+  await expect.poll(async () => (await notes()).length).toBe(1);
+  const note = (await notes())[0];
+  expect(note.t).toBe('Added automatically');
+  expect(note.o.body).toBe('Netflix ₹199');
+  expect(note.o.tag).toMatch(/^recurring-\d{4}-\d{2}-\d{2}$/);
+  await app.tab('settings');
+  expect(await app.flat('#main')).toMatch(/TellmewhenanentryisaddedOn/);
+  await app.click('[data-recur-alerts="off"]');
+  await app.expectStored(d => d.meta.recurAlerts === false, 'recurAlerts stored as false');
+  expect(await app.flat('#main')).toMatch(/TellmewhenanentryisaddedOff/);
+  // Off: the next entry still toasts but posts nothing.
+  await app.patch(d => {
+    const n = new Date(),
+      tm = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0');
+    d.recurring.push({
+      id: 'r-gym',
+      kind: 'expense',
+      amount: 1500,
+      category: 'Health',
+      method: 'cash',
+      accountId: 'cash',
+      day: 1,
+      note: 'Gym',
+      active: true,
+      since: tm,
+      lastApplied: '',
+    });
+  });
+  await app.reload();
+  await app.expectToast(/Added automatically: Gym ₹1,500/);
+  await app.tab('settings');
+  expect(await notes()).toHaveLength(0);
+  await app.click('[data-recur-alerts="on"]');
+  await app.expectStored(d => d.meta.recurAlerts === undefined, 'recurAlerts back on');
+});
+
 test('alerts can be turned off and stored; removing the over budget clears the badge; denied permission reads as blocked', async () => {
   await app.tab('settings');
   await app.click('[data-alerts="off"]');

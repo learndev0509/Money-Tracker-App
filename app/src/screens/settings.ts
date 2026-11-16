@@ -18,7 +18,7 @@ import { FUEL } from '../data/model';
 import { vehInputHTML } from './add';
 import { catIcon, installHint } from '../ui/shared';
 import { budgetRows, budgetText } from '../queries/budgets';
-import { notifyState } from '../ui/notify';
+import { notifyState, recurAlertsState } from '../ui/notify';
 /* ---------- SETTINGS ---------- */
 export function rSettings() {
   const list = (type: 'bank' | 'card') => {
@@ -110,7 +110,10 @@ export function rSettings() {
       <div class="hint" style="margin-top:8px">The Dashboard shows what is left, turns amber at 80% and red when a budget is exceeded. A toast warns the moment a save crosses 80%; at 90% and when a budget is exceeded the app also posts a notification (if allowed) and the Home Screen icon shows how many budgets are over.</div></section>
     <section class="card"><div class="card-head"><h2>Recurring</h2><span class="sub">Expenses and money in, added each month</span></div>
       <div class="list">${recRows}</div>
-      <button type="button" style="width:100%;margin-top:10px" data-detail="recur|new">Add a recurring entry</button></section>
+      <button type="button" style="width:100%;margin-top:10px" data-detail="recur|new">Add a recurring entry</button>
+      <div class="kv" style="margin-top:12px"><span>Tell me when an entry is added</span><b>${{ on: 'On', off: 'Off', blocked: 'Blocked in phone settings', unsupported: 'Not available here' }[recurAlertsState()]}</b></div>
+      ${recurAlertsState() === 'on' ? '<button type="button" style="width:100%;margin-top:8px" data-recur-alerts="off">Turn off</button>' : recurAlertsState() === 'off' ? '<button type="button" style="width:100%;margin-top:8px" data-recur-alerts="on">Notify me</button>' : ''}
+      <div class="hint" style="margin-top:8px">Due entries are added when the app opens or comes back to the foreground; a toast and a notification then name each one. There is no server, so nothing arrives while the app is closed.</div></section>
     <section class="card"><h2>Backup</h2>
       <div class="kv" style="margin-top:10px"><span>Expenses stored on this device</span><b>${S.tx.length}</b></div>
       <div class="kv" style="margin-top:4px"><span>Last backup</span><b>${lastB ? esc(midDate(dateKey(new Date(lastB)))) : 'never'}</b></div>

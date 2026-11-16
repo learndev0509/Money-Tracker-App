@@ -4,7 +4,7 @@ import { S, setLedger } from '../../src/data/storage';
 import { acctName, billPeriod, groupBy, methodOf, payLabel, sources, sum, txIn } from '../../src/queries/ledger';
 import { budgetRows, budgetText } from '../../src/queries/budgets';
 import { cashBalance, cashEvents, hasCashActivity } from '../../src/queries/cash';
-import { applyRecurringTo } from '../../src/queries/recurring';
+import { addedSummary, addedText, applyRecurringTo, recurLabel, type AddedEntry } from '../../src/queries/recurring';
 import { noteStats, noteSuggestions } from '../../src/queries/notes';
 import { today } from '../../src/lib/dates';
 import backup from '../fixtures/backup-1.8.0.json';
@@ -110,6 +110,28 @@ describe('recurring entries', () => {
       r.lastApplied = '';
     });
     expect(applyRecurringTo(d, '2026-10', 30)).toBe(0);
+  });
+  it('describes each entry it added, for the toast and the notification', () => {
+    const d = load();
+    const rent = d.recurring.find(r => r.id === 'r1')!;
+    rent.lastApplied = '';
+    rent.since = '2026-09';
+    const out: AddedEntry[] = [];
+    const n = applyRecurringTo(d, '2026-10', 30, out);
+    expect(out).toHaveLength(n);
+    expect(out.filter(a => a.label === recurLabel(rent))).toEqual([
+      { kind: 'expense', amount: 15000, label: recurLabel(rent), date: '2026-09-01' },
+      { kind: 'expense', amount: 15000, label: recurLabel(rent), date: '2026-10-01' },
+    ]);
+    expect(addedText({ kind: 'income', amount: 85000, label: 'Salary', date: '2026-10-01' })).toBe('Salary +₹85,000');
+    const many = Array.from({ length: 5 }, (_, i) => ({
+      kind: 'expense' as const,
+      amount: 100 + i,
+      label: 'E' + i,
+      date: '',
+    }));
+    expect(addedSummary(many.slice(0, 2))).toBe('E0 ₹100, E1 ₹101');
+    expect(addedSummary(many)).toBe('E0 ₹100, E1 ₹101, E2 ₹102 and 2 more');
   });
 });
 

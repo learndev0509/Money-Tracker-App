@@ -4,8 +4,9 @@ import { toast } from './toast';
 import { render } from './render';
 import { vault } from '../data/crypto';
 import { budgetRows } from '../queries/budgets';
-import { money, pct, thisMonth } from '../lib/dates';
+import { money, pct, thisMonth, today } from '../lib/dates';
 import { sum, txIn } from '../queries/ledger';
+import { addedText, type AddedEntry } from '../queries/recurring';
 export const notifySupported = () => 'Notification' in window;
 export const notifyState = () =>
   !notifySupported()
@@ -15,6 +16,19 @@ export const notifyState = () =>
       : Notification.permission === 'granted' && S.meta.alerts !== false
         ? 'on'
         : 'off';
+/** Asks for notification permission if it has never been asked; true when notifications may be shown. */
+async function ensurePermission() {
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    try {
+      perm = await Notification.requestPermission();
+    } catch (e) {
+      perm = 'denied';
+    }
+  }
+  if (perm !== 'granted') toast('Notifications are blocked for this app in your phone’s settings');
+  return perm === 'granted';
+}
 export async function setAlerts(on: boolean) {
   if (!notifySupported()) {
     toast('This browser cannot show notifications');
@@ -27,16 +41,7 @@ export async function setAlerts(on: boolean) {
     toast('Budget alerts off');
     return;
   }
-  let perm = Notification.permission;
-  if (perm === 'default') {
-    try {
-      perm = await Notification.requestPermission();
-    } catch (e) {
-      perm = 'denied';
-    }
-  }
-  if (perm !== 'granted') {
-    toast('Notifications are blocked for this app in your phone’s settings');
+  if (!(await ensurePermission())) {
     render(false);
     return;
   }
@@ -44,6 +49,42 @@ export async function setAlerts(on: boolean) {
   save();
   render(false);
   toast('Budget alerts on');
+}
+/** The "added automatically" notification: on when alerts are allowed and it has not been turned off on its own. */
+export const recurAlertsState = () => {
+  const s = notifyState();
+  return s === 'on' ? (S.meta.recurAlerts === false ? 'off' : 'on') : s;
+};
+export async function setRecurAlerts(on: boolean) {
+  if (!notifySupported()) {
+    toast('This browser cannot show notifications');
+    return;
+  }
+  if (!on) {
+    S.meta.recurAlerts = false;
+    save();
+    render(false);
+    toast('You will not be told when an entry is added');
+    return;
+  }
+  if (!(await ensurePermission())) {
+    render(false);
+    return;
+  }
+  delete S.meta.recurAlerts;
+  delete S.meta.alerts;
+  save();
+  render(false);
+  toast('You will be told when an entry is added');
+}
+/** One notification naming every entry the recurring rules just added. */
+export function notifyRecurring(added: AddedEntry[]) {
+  if (!added.length || S.meta.recurAlerts === false) return;
+  notify(
+    added.length === 1 ? 'Added automatically' : added.length + ' entries added automatically',
+    added.map(addedText).join(' · '),
+    'recurring-' + today(),
+  );
 }
 export function notify(title: string, body: string, tag: string) {
   if (notifyState() !== 'on') return;

@@ -77,6 +77,8 @@ export interface Meta {
   theme?: 'light' | 'dark';
   appVersion?: string;
   alerts?: false;
+  /** false turns off the "added automatically" notification; absent means on (when alerts are allowed). */
+  recurAlerts?: false;
 }
 export interface Ledger {
   profile: Profile;
@@ -263,5 +265,6 @@ export function migrate(d: Raw): Ledger {
   if (d.meta.theme !== 'light' && d.meta.theme !== 'dark') delete d.meta.theme;
   if (typeof d.meta.appVersion !== 'string') delete d.meta.appVersion;
   if (d.meta.alerts !== false) delete d.meta.alerts;
+  if (d.meta.recurAlerts !== false) delete d.meta.recurAlerts;
   return d as Ledger;
 }
