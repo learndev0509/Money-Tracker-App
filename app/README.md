@@ -225,6 +225,11 @@ Filter, Sort and Clear buttons; recurring entries are announced by toast and not
 not a number; `saveEdit` clears the vehicle and readings when a fill is moved off Fuel; `setRecurAlerts`
 says when it clears `meta.alerts`.
 
+1.2.12 (17 November 2026): cash in hand is additive. A `cashIn` entry of kind `adjust` adds in
+`cashBalance` instead of replacing the total, the action is "Add cash in hand", `cashEffect` gives the
+form's "Adds to … after this" line and `saveCash` refuses zero (`tests/unit/cash.test.ts`,
+`e2e/cash.spec.ts`).
+
 ## Continuous integration
 
 The repository root holds `.github/workflows/check.yml`: on every push to `main` and every pull
