@@ -1,6 +1,6 @@
 # Money tracker — handoff
 
-Version 1.2.10 · 16 November 2026 · Zestera
+Version 1.2.11 · 17 November 2026 · Zestera
 
 This is the engineering handoff for the Money tracker web app: what it is, what was built and why, how it is put together, how to change it, and what is still open. The user-facing description of every feature is in `Money tracker - Features and How it works.md`; this file does not repeat it.
 
@@ -25,6 +25,7 @@ A personal expense tracker for a phone, iPhone or Android, run as a Home Screen 
 | 1.2.7 | 2 Nov | First release from the module build (`app/`): income in History search, "new version is ready" reload toast, only the saved row animates, `₹1.2Cr` |
 | 1.2.8 | 16 Nov | Dashboard Month \| Year switch with a Month by month comparison card and a whole-year view; All months in History; Android install card (Chrome steps, Install button) and phone-neutral wording (biometric unlock is "fingerprint or face" off iPhone); CSV export removed; service worker claims on first install; re-enrolling Face ID replaces the passkey |
 | 1.2.9 | 16 Nov | New palette: beige, sage and sky blue in light, warm olive charcoal in dark; icons re-rendered from the recoloured SVG; releases renumbered (see below) |
+| 1.2.11 | 17 Nov | Review fixes: bank-paid fills reopen the Fuel card as UPI (`pickVehicle`); first reading asks for litres (`mileageHint`); non-number readings refused on the card and in `saveEdit`; a fill edited off Fuel drops `vehicleId`/`odo`/`litres`; `setRecurAlerts` says when it clears `meta.alerts` |
 | 1.2.10 | 16 Nov | Fuel card replaces the manual form while open, takes Cash / UPI / Card with per-vehicle memory, and optional odometer and litres for mileage (`tx.odo`, `tx.litres`, `fuelTrack()`); History opens on the current year with All months and gets Filter, Sort and Clear buttons with sheets; recurring entries announced by toast and notification (`meta.recurAlerts`) |
 
 Up to 1.2.6 each version shipped as `money-tracker-<version>.zip`; 1.2.2 and later are what has been on Netlify. From 1.2.7 a release is `app/dist/` (see §12 and `app/README.md`).
@@ -190,3 +191,5 @@ The same app, split into TypeScript modules and built with Vite, lives in `app/`
 - **Numbering.** Releases after 1.2.0 were renumbered 1.2.1–1.2.9; see §2.
 
 1.2.10 (16 November 2026): the Fuel card stands in for the manual form while open (`ui.fuelOpen` in `screens/add.ts`), with `fuel.method` Cash / UPI / Card (`pickVehicle`, `pickFuelMethod`) and optional `fuel.odo` / `fuel.litres` saved as `tx.odo` / `tx.litres`; `queries/ledger.ts` `fuelTrack()` turns the readings into legs with km/L for the card hint, the Dashboard Fuel card, the vehicle sheet and the expense sheet. History opens with `ui.histMonth === 0`; the Category, Paid with and Sort choices moved into the `hfilter` and `hsort` sheets (`screens/sheets/hist.ts`) behind Filter, Sort and Clear buttons. `applyRecurring()` names each entry it adds in a toast and, when `meta.recurAlerts` is not off, a notification (`ui/notify.ts`).
+
+1.2.11 (17 November 2026) is fixes from two reviews of 1.2.10, with unit and browser tests for each: `pickVehicle` maps a bank-backed last fill to UPI (the card has no Bank segment); `mileageHint` asks for the litres on a first reading; `saveFuel` and `saveEdit` refuse an odometer or litres entry that is not a number instead of dropping it; `saveEdit` clears `vehicleId`, `odo` and `litres` when the category is no longer Fuel; `setRecurAlerts` toasts "Alerts on again" when it clears `meta.alerts`.

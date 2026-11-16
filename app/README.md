@@ -218,6 +218,11 @@ All months and its Category, Paid with and Sort choices live in the `hfilter` an
 Filter, Sort and Clear buttons; recurring entries are announced by toast and notification
 (`meta.recurAlerts`, `ui/notify.ts`).
 
+1.2.11 (17 November 2026): review fixes. `pickVehicle` maps a bank-backed last fill to UPI;
+`mileageHint` asks for the litres on a first reading; `saveFuel` and `saveEdit` refuse a reading that is
+not a number; `saveEdit` clears the vehicle and readings when a fill is moved off Fuel; `setRecurAlerts`
+says when it clears `meta.alerts`.
+
 ## Continuous integration
 
 The repository root holds `.github/workflows/check.yml`: on every push to `main` and every pull

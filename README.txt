@@ -16,7 +16,7 @@ Files:
   icon-*.png     home-screen icons (the ₹ mark)
   favicon.svg, favicon-32.png   browser-tab icon
   fonts/         IBM Plex Sans and Mono (subsets, OFL) - the app loads nothing from the internet
-  app/           the current release (1.2.10) as TypeScript modules built with Vite: npm run build -> app/dist,
+  app/           the current release (1.2.11) as TypeScript modules built with Vite: npm run build -> app/dist,
                  and upload that folder in place of the root files; see app/README.md. The root files above are
                  the older single-file copy (1.2.6) and behave the same with the same data.
 
