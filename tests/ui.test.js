@@ -94,7 +94,7 @@ const results=[];const ok=(n,c,x)=>results.push((c?'PASS ':'FAIL ')+n+(x?' — '
   // --- version chip (label only; the history lives in the docs)
   await click('nav [data-go="settings"]');
   ok('settings shows the version chip as a label, not a button',/Version 1\.8\.0/.test(await txt('#version-chip'))&&/30 October 2026/.test(await txt('#version-chip'))&&await page.$eval('#version-chip',e=>e.tagName)==='SPAN');
-  ok('saves stamp the app version into the ledger',await page.evaluate(k=>JSON.parse(localStorage.getItem(k)).meta.appVersion,KEY)==='1.8.0');
+  ok('saves stamp the app version into the ledger',await page.evaluate(k=>JSON.parse(localStorage.getItem(k)).meta.appVersion,KEY)==='1.2.6');
 
   // --- PDF report
   const [pdfDl]=await Promise.all([page.waitForEvent('download',{timeout:8000}).catch(()=>null),click('#pdf-dl')]);

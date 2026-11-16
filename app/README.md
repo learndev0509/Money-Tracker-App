@@ -2,7 +2,7 @@
 
 The same app as `../index.html`, split into TypeScript modules and built with Vite. Same screens, same
 behaviour, same storage key, same encrypted blob layout and the same backup JSON: a phone that has the
-single-file 1.8.0 installed can open this build and carry on. The user-facing reference is still
+single-file 1.2.6 installed can open this build and carry on. The user-facing reference is still
 `../Money tracker - Features and How it works.md`; the engineering history is `../HANDOFF.md`.
 
 ## Commands
@@ -54,7 +54,8 @@ tests/unit/           Vitest: migrate against fixtures, calculator and formattin
                       crypto round trips, storage, the crash log, and the golden snapshots
 tests/golden/         one file per screen, sheet and report as rendered from the fixture ledger
                       at a frozen clock (30 Oct 2026, 6:30 pm); golden.test.ts compares against them
-tests/fixtures/       a 1.8.0 backup and a pre-1.0 Rupee Ledger backup; add one per release
+tests/fixtures/       a 1.2.6 backup (the file keeps its old name, backup-1.8.0.json) and a pre-1.0
+                      Rupee Ledger backup; add one per release
 e2e/*.spec.ts         Playwright Test: the eight original stories (features, fuel, round2, round3,
                       safety, secure, ui, welcome) as serial specs, plus visual.spec.ts
 e2e/helpers.ts        the App helper every spec uses: open a phone-sized page, finish the welcome,
@@ -151,7 +152,7 @@ Baselines are named per platform; a machine on another OS records its own set on
 `src/data/model.ts` and `src/data/crypto.ts` describe what is on ten phones. Rules carried over:
 
 - `migrate()` is the only way data enters the app and must stay tolerant;
-- the stored blob layouts (`enc:2` with `pin`/`face` wrappers, `enc:1` snapshots, pre-1.8 `enc:1`
+- the stored blob layouts (`enc:2` with `pin`/`face` wrappers, `enc:1` snapshots, pre-1.2.6 `enc:1`
   with `salt`) are read by `tryUnlock` exactly as before;
 - backups stay plain JSON;
 - `tests/unit/model.test.ts` runs `migrate()` over the fixtures in `tests/fixtures/`. When a release
@@ -168,10 +169,11 @@ Baselines are named per platform; a machine on another OS records its own set on
    `npm run e2e -- visual --update-snapshots`, and commit them with the change.
 5. Deploy `dist/` to the static host. Existing phones pick up `index.html` on the next online open.
 
-## 1.9.0, the first release from this folder
+## 1.2.7, the first release from this folder
 
-The module build first shipped the single file's behaviour unchanged (1.8.0, proven by the goldens).
-1.9.0 (2 November 2026) is the first release that changes it, on purpose:
+The module build first shipped the single file's behaviour unchanged (1.2.6, proven by the goldens).
+1.2.7 (2 November 2026, numbered 1.9.0 until the renumbering of 16 November) is the first release
+that changes it, on purpose:
 
 - only the row just saved slides in: `txRow` takes a boolean, so the lists built with `.map` no
   longer hand it the array index and the `new` class;

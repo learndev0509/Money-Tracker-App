@@ -50,7 +50,7 @@ describe('master key wrapping', () => {
     expect(await decryptText(blob, vault.masterKey!)).toBe('{"a":1}');
     expect(isEncrypted('{"tx":[]}')).toBe(false);
   });
-  it('still reads a pre-1.8 blob encrypted directly with the PIN key', async () => {
+  it('still reads a pre-1.2.6 blob encrypted directly with the PIN key', async () => {
     const salt = rnd(16);
     const legacy = await deriveKey('4321', salt);
     const raw = JSON.stringify({ ...parseBlob(await encryptText('{"b":2}', legacy)), salt: b64(salt) });

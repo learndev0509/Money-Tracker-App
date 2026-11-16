@@ -18,7 +18,7 @@ describe('defaults()', () => {
   });
 });
 
-describe('migrate() on a 1.8.0 backup', () => {
+describe('migrate() on a 1.2.6 backup (the fixture keeps its old 1.8.0 name and stamp)', () => {
   const d = migrate(clone(backup));
   it('keeps the cash account first and normalises statement days', () => {
     expect(d.accounts[0].id).toBe('cash');

@@ -128,7 +128,7 @@ test('changing the PIN re-wraps the master key: the old PIN stops working, the n
   expect(await storedCount()).toBe(3);
 });
 
-test('a store written by 1.1–1.7 (enc:1 with the PIN key) unlocks and is upgraded to the wrapped format', async () => {
+test('a store written by 1.1–1.2.5 (enc:1 with the PIN key) unlocks and is upgraded to the wrapped format', async () => {
   await page().evaluate(
     async ([k, date]) => {
       const plain = JSON.stringify({

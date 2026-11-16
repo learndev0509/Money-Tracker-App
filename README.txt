@@ -1,4 +1,4 @@
-Money tracker by Zestera - self-hosted copy (version 1.8.0, 30 Oct 2026)
+Money tracker by Zestera - self-hosted copy (version 1.2.6, 30 Oct 2026; numbered 1.8.0 until 16 Nov 2026)
 Settings shows the version; the change history is in the .md document.
 
 Upload this whole folder to any static host (GitHub Pages, Cloudflare Pages, Azure Static Web App, Netlify).

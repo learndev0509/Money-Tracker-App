@@ -1,6 +1,6 @@
 # Money tracker — handoff
 
-Version 1.11.0 · 16 November 2026 · Zestera
+Version 1.2.9 · 16 November 2026 · Zestera
 
 This is the engineering handoff for the Money tracker web app: what it is, what was built and why, how it is put together, how to change it, and what is still open. The user-facing description of every feature is in `Money tracker - Features and How it works.md`; this file does not repeat it.
 
@@ -16,14 +16,16 @@ A personal expense tracker for a phone, iPhone or Android, run as a Home Screen 
 | 1.0.0 | 23 Oct | Renamed Money tracker. Welcome screen and greeting, cash in hand, monthly budgets, card statement cycles, recurring expenses, undo after delete, note autocomplete, History filters, open-on-Add, service worker |
 | 1.1.0 | 29 Oct | Data safety: daily automatic copies, undoable Delete all, `storage.persist()`. iOS install card (Safari tab and app have separate storage). Money in (income). UPI as a payment method. PIN now encrypts the ledger (PBKDF2 → AES-256-GCM) instead of gating it |
 | 1.2.0 | 29 Oct | UI pass: Dashboard hero spark + category strip, category glyphs, save-button check, new-row slide, draggable sheets, gliding tab indicator, month slide, empty-state illustration, Appearance setting |
-| 1.3.0 | 29 Oct | Fuel in one tap: vehicles, fuel cards with "bill so far", Dashboard Fuel card with fill map and fuel share of each card bill, Vehicle column in CSV |
-| 1.4.0 | 30 Oct | Dashboard · History · Settings tab bar with Add in every header; Trends sheet; History rebuilt as a newest-first ledger; calculator on amount fields; ₹ logo and favicon |
-| 1.5.0 | 30 Oct | Fuel card behind a Fuel button (closable, selects Fuel category); History filters as dropdowns with sort; 16-colour category palette; stale `pin` field dropped; version chip; `meta.appVersion` in saves |
-| 1.6.0 | 30 Oct | Fuel amount clears after save and on close; Budgets settings list only set budgets with an Add row; budget warnings (toast on crossing 80% / exceeding, Dashboard banner while over); monthly PDF expense report |
-| 1.7.0 | 30 Oct | Self-hosted fonts (subsetted IBM Plex WOFF under `fonts/`, zero external requests); Save backup to Files via Web Share; Privacy and Terms sheets |
-| 1.8.0 | 30 Oct | Face ID unlock (WebAuthn passkey + PRF) over a wrapped random master key, PIN fallback, legacy stores upgraded on unlock; budget notifications at 90%/exceeded; app badge; alerts toggle |
+| 1.2.1 | 29 Oct | Fuel in one tap: vehicles, fuel cards with "bill so far", Dashboard Fuel card with fill map and fuel share of each card bill, Vehicle column in CSV |
+| 1.2.2 | 30 Oct | Dashboard · History · Settings tab bar with Add in every header; Trends sheet; History rebuilt as a newest-first ledger; calculator on amount fields; ₹ logo and favicon |
+| 1.2.3 | 30 Oct | Fuel card behind a Fuel button (closable, selects Fuel category); History filters as dropdowns with sort; 16-colour category palette; stale `pin` field dropped; version chip; `meta.appVersion` in saves |
+| 1.2.4 | 30 Oct | Fuel amount clears after save and on close; Budgets settings list only set budgets with an Add row; budget warnings (toast on crossing 80% / exceeding, Dashboard banner while over); monthly PDF expense report |
+| 1.2.5 | 30 Oct | Self-hosted fonts (subsetted IBM Plex WOFF under `fonts/`, zero external requests); Save backup to Files via Web Share; Privacy and Terms sheets |
+| 1.2.6 | 30 Oct | Face ID unlock (WebAuthn passkey + PRF) over a wrapped random master key, PIN fallback, legacy stores upgraded on unlock; budget notifications at 90%/exceeded; app badge; alerts toggle |
 
-Each version shipped as `money-tracker-<version>.zip`; 1.4.0 and later are what has been on Netlify.
+Each version shipped as `money-tracker-<version>.zip`; 1.2.2 and later are what has been on Netlify.
+
+Numbering changed on 16 November 2026: the releases after 1.2.0 step the third number (1.2.1 … 1.2.10, 1.2.11) and the second is kept for a bigger milestone (1.3.0). The rows above and every mention in this file use the new numbers; the zips, the fixture `backup-1.8.0.json` and stamps in old backups still carry the old ones (1.8.0 = 1.2.6, 1.9.0 = 1.2.7, 1.10.0 = 1.2.8, 1.11.0 = 1.2.9).
 
 ## 3. Files
 
@@ -87,7 +89,7 @@ Rules that matter:
 - **Fuel quick-fill is card-only** by choice (that is how fuel is paid here). Cash/UPI fuel goes through the normal form and lands in the same Fuel card.
 - **History is a ledger, Dashboard owns all graphs.** Charts were removed from History on request.
 - **PDF is written by hand** (no library) so it works offline and fetches nothing: PDF 1.4, Helvetica/Helvetica-Bold base fonts with a width table for alignment, the ₹ drawn as a vector path (base fonts lack it), Indian digit grouping, A4 pagination with repeated header. Latin text only.
-- **Fonts ship with the app** since 1.7.0, subsetted with fontTools to Basic Latin, Latin-1, common punctuation and ₹, as WOFF (brotli was unavailable for WOFF2; the difference is ~15 KB). Plex Sans 400/500/600 came from the owner's Google Fonts download; Plex Mono 500/600 are stand-ins built from Plex Mono Regular and Bold — swap in the real Medium/SemiBold files by re-running the subset if the owner supplies them. With this, the page makes no request after load; the privacy sheet states exactly that.
+- **Fonts ship with the app** since 1.2.5, subsetted with fontTools to Basic Latin, Latin-1, common punctuation and ₹, as WOFF (brotli was unavailable for WOFF2; the difference is ~15 KB). Plex Sans 400/500/600 came from the owner's Google Fonts download; Plex Mono 500/600 are stand-ins built from Plex Mono Regular and Bold — swap in the real Medium/SemiBold files by re-running the subset if the owner supplies them. With this, the page makes no request after load; the privacy sheet states exactly that.
 - **Backup share** uses `navigator.share({files})`, gated by `navigator.canShare`; the button only renders where file sharing exists (iOS/iPadOS Safari and Home Screen apps). Download and Copy remain for everything else.
 - **Privacy and Terms are sheets inside the app**, not separate URLs, so they work offline and from the welcome screen (the sheet gets `.over` to sit above the welcome layer).
 - **Face ID is a second wrapper, never the only key.** WebAuthn PRF is supported for same-device iCloud passkeys from iOS 18 / Safari 18; cross-device (QR) flows returned wrong or empty PRF values in reports up to Safari 18.4, which is one reason the PIN is mandatory and Face ID optional. `rp.id` is `location.hostname`, so moving domains orphans the passkey (PIN still unlocks; re-enrol). Enrolment reads PRF from `create()` and falls back to an immediate `get()` if the authenticator only evaluates PRF on assertion (Safari does this), which costs a second Face ID prompt once.
@@ -108,14 +110,14 @@ node features.test.js && node welcome.test.js && node round2.test.js && node rou
 | welcome | first run, greeting, profile, old-key migration |
 | round2 | note autocomplete, undo, cash in hand, History dropdowns and sort, open-on-Add, reduced motion |
 | round3 | UPI end to end, income end to end incl. recurring salary |
-| safety | snapshots and restore, undoable wipe, encryption lifecycle incl. the pre-1.8 `enc:1` upgrade, erase, iOS install card |
+| safety | snapshots and restore, undoable wipe, encryption lifecycle incl. the pre-1.2.6 `enc:1` upgrade, erase, iOS install card |
 | ui | glyphs, save morph, hero spark, sheets, theme, nav, calculator, Trends, version chip, PDF export, local fonts / zero external requests, privacy and terms, share-to-Files backup |
 | secure | served from a fake `https://money.test` origin via Playwright routing with a CDP virtual authenticator (`hasPrf`): Face ID enrol/unlock, PIN fallback, PIN change keeps the Face wrapper, fail-closed without the passkey, service-worker precache over https, budget notifications and badge via stubbed `Notification`/`setAppBadge` |
 | fuel | vehicles, fuel toggle/close/clear, cards and bill hints, Dashboard Fuel card |
 
-261 checks at 1.8.0. The suites wait fixed milliseconds in places; `features` uses `toastHas()` for the slow (PBKDF2) PIN paths. A lone intermittent failure that passes on re-run is harness timing, not the app.
+261 checks at 1.2.6. The suites wait fixed milliseconds in places; `features` uses `toastHas()` for the slow (PBKDF2) PIN paths. A lone intermittent failure that passes on re-run is harness timing, not the app.
 
-Real-data check: a restored production backup (14 expenses, ₹4.21 L, custom category, cash adjust) was walked through every screen on 30 Oct; it found the grey-palette bug and the stale `pin`, both fixed in 1.5.0.
+Real-data check: a restored production backup (14 expenses, ₹4.21 L, custom category, cash adjust) was walked through every screen on 30 Oct; it found the grey-palette bug and the stale `pin`, both fixed in 1.2.3.
 
 ## 8. Releasing a change
 
@@ -128,7 +130,7 @@ Real-data check: a restored production backup (14 expenses, ₹4.21 L, custom ca
 
 Verification habit used throughout: reproduce first, fix, add the test that would have caught it, run everything, look at the screens, and say plainly when something cannot be reproduced.
 
-## 9. Device checklist for 1.8.0 (not runnable here)
+## 9. Device checklist for 1.2.6 (not runnable here)
 
 Run once on the real iPhone, from the Home Screen app on the https URL:
 
@@ -148,7 +150,7 @@ If 1 fails only on the cross-device (QR) path, that matches the known WebKit lim
 - Face ID enrolment and notifications were verified with Chromium's virtual authenticator and stubbed Notification API, not on an iPhone; see the device checklist.
 - PDF: Latin text only; non-Latin notes print as `?`. Embedding a font costs ~100 KB.
 - Fuel: amount only (no litres/odometer, so no mileage).
-- History search covers income since 1.9.0; since 1.10.0 (16 November 2026) the Month dropdown has an All months choice for the whole year, and the app addresses any phone: the install card shows Chrome's steps and an Install button (`beforeinstallprompt`) on Android, the biometric unlock is called "fingerprint or face" off iPhone, no user-facing text assumes an iPhone, the CSV export is gone from Backup (JSON backup and PDF report remain), the palette is beige, sage and sky blue, light on beige and dark on a warm olive charcoal (tokens at the top of `src/styles.css`, two identical dark blocks to keep in step), and the Dashboard has a Month | Year switch (`ui.scope`): a Month by month comparison card in the month view and a whole-year view (`rYear` in `screens/dashboard.ts`, series and movers in `queries/compare.ts`; category and account sheets accept a year key) (module build only; the root `index.html` is still 1.8.0).
+- History search covers income since 1.2.7; since 1.2.8 (16 November 2026) the Month dropdown has an All months choice for the whole year, and the app addresses any phone: the install card shows Chrome's steps and an Install button (`beforeinstallprompt`) on Android, the biometric unlock is called "fingerprint or face" off iPhone, no user-facing text assumes an iPhone, the CSV export is gone from Backup (JSON backup and PDF report remain), the palette is beige, sage and sky blue, light on beige and dark on a warm olive charcoal (tokens at the top of `src/styles.css`, two identical dark blocks to keep in step), and the Dashboard has a Month | Year switch (`ui.scope`): a Month by month comparison card in the month view and a whole-year view (`rYear` in `screens/dashboard.ts`, series and movers in `queries/compare.ts`; category and account sheets accept a year key) (module build only; the root `index.html` is still 1.2.6).
 - Budget warnings are in-app only; a web app on iOS cannot post notifications without a server.
 - No sync, no multi-device; backups are manual (plus the 3-day automatic copies on the same phone).
 - `tests/` suites are scripts, not a runner; done for the module build in `app/e2e/` (Playwright Test, see §12). Note that four of the original checks only pass late in a month (written on 30 October); the specs compute them from the date.
@@ -156,8 +158,8 @@ If 1 fails only on the cross-device (QR) path, that matches the known WebKit lim
 ## 11. Where things are
 
 - Live: the owner's Netlify site (URL held by the owner).
-- Source of record: the latest `money-tracker-<version>.zip` handed over on 30 Oct 2026 (1.8.0). No git repository exists yet; creating one from the zip and tagging `v1.6.0` is the obvious first step for anyone taking this on.
+- Source of record: the latest `money-tracker-<version>.zip` handed over on 30 Oct 2026 (1.2.6, numbered 1.8.0 at the time). The repository was created on 2 November 2026 (see §12).
 
 ## 12. Module build (app/)
 
-The same app, split into TypeScript modules and built with Vite, lives in `app/` (added 30 October 2026). It keeps the storage key, the encrypted blob layout and the backup JSON, so phones on the single-file 1.8.0 can move to it without a migration. It adds unit tests over `migrate()`, the queries and the crypto round trips, a generated service worker whose cache name changes with the assets, and a local crash log behind Settings → Report a problem. The suites in `tests/` were rewritten as Playwright Test specs in `app/e2e/` (2 November 2026: same checks, locators and auto-waiting instead of sleeps, traces on failure, a visual-regression spec over the fixture ledger); `app/e2e/run.cjs` still runs the originals in `tests/` (unchanged) against the built output. How it is organised, built and released is in `app/README.md`. The project became a git repository on 2 November 2026 with `.github/workflows/check.yml` running `npm run check` on pushes and pull requests; the same day Prettier and ESLint (with the Playwright rules) were added to `app/` and the modules reformatted, with the goldens proving the output unchanged. The root `index.html` stays the deployed 1.8.0 until the module build replaces it on the host. 1.9.0 (2 November 2026, built from `app/`) is the first release whose behaviour differs from the single file: income in History search, a "new version is ready" reload toast, only the saved row animating, and `₹1.2Cr` instead of `₹1.20Cr`; see `app/README.md`. Deploying it means publishing `app/dist/` in place of the root files.
+The same app, split into TypeScript modules and built with Vite, lives in `app/` (added 30 October 2026). It keeps the storage key, the encrypted blob layout and the backup JSON, so phones on the single-file 1.2.6 can move to it without a migration. It adds unit tests over `migrate()`, the queries and the crypto round trips, a generated service worker whose cache name changes with the assets, and a local crash log behind Settings → Report a problem. The suites in `tests/` were rewritten as Playwright Test specs in `app/e2e/` (2 November 2026: same checks, locators and auto-waiting instead of sleeps, traces on failure, a visual-regression spec over the fixture ledger); `app/e2e/run.cjs` still runs the originals in `tests/` (unchanged) against the built output. How it is organised, built and released is in `app/README.md`. The project became a git repository on 2 November 2026 with `.github/workflows/check.yml` running `npm run check` on pushes and pull requests; the same day Prettier and ESLint (with the Playwright rules) were added to `app/` and the modules reformatted, with the goldens proving the output unchanged. The root `index.html` stays the deployed 1.2.6 until the module build replaces it on the host. 1.2.7 (2 November 2026, built from `app/`) is the first release whose behaviour differs from the single file: income in History search, a "new version is ready" reload toast, only the saved row animating, and `₹1.2Cr` instead of `₹1.20Cr`; see `app/README.md`. Deploying it means publishing `app/dist/` in place of the root files.

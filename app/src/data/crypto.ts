@@ -1,12 +1,12 @@
 /*
  * Encryption: the ledger and its snapshots are AES-GCM under a random master key. The master key is
  * wrapped by the PIN (PBKDF2) and, optionally, by a Face ID passkey (WebAuthn PRF). Stores written
- * before 1.8 (enc:1) are encrypted directly with the PIN key and are upgraded on first unlock.
+ * before 1.2.6 (enc:1) are encrypted directly with the PIN key and are upgraded on first unlock.
  *
  * Stored blob layouts (frozen; see HANDOFF.md §5):
  *   enc:2  {enc:2, iv, ct, pin:{salt,iv,ct}, face?:{id,salt,iv,ct}}   main ledger
  *   enc:1  {enc:1, iv, ct}                                              snapshots under the master key
- *   enc:1  {enc:1, iv, ct, salt}                                        pre-1.8 ledger under the PIN key
+ *   enc:1  {enc:1, iv, ct, salt}                                        pre-1.2.6 ledger under the PIN key
  */
 import type { Raw } from './model';
 export const ENC_ITER = 100000;
