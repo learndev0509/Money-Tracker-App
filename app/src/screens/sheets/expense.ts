@@ -3,10 +3,21 @@ import { S, save } from '../../data/storage';
 import { ui } from '../../ui/state';
 import { fmtTime, longDate, midDate, money, parseDate, today } from '../../lib/dates';
 import { editFormHTML } from './forms';
-import { METHOD_LABEL, acct, acctName, catColor, chooseMsg, methodOf } from '../../queries/ledger';
+import {
+  METHOD_LABEL,
+  acct,
+  acctName,
+  catColor,
+  chooseMsg,
+  fuelTrack,
+  kmpl,
+  methodOf,
+  num1,
+  vehName,
+} from '../../queries/ledger';
 import { DAYS, esc } from '../../lib/constants';
 import { recurLabel } from '../../queries/recurring';
-import { parseAmt } from '../../lib/calc';
+import { parseAmt, posNum } from '../../lib/calc';
 import { offerUndo, toast } from '../../ui/toast';
 import { remember } from '../../ui/pay';
 import { render } from '../../ui/render';
@@ -15,7 +26,13 @@ import { budgetWarn } from '../../ui/notify';
 export function editSheet(p: string[]): SheetView {
   const t = S.tx.find(x => x.id === p[1]);
   if (!t) return { title: 'Expense', body: '<div class="hint">This expense was deleted.</div>' };
-  if (!ui.editTx || ui.editTx.id !== p[1]) ui.editTx = { ...t, amount: String(t.amount) };
+  if (!ui.editTx || ui.editTx.id !== p[1])
+    ui.editTx = {
+      ...t,
+      amount: String(t.amount),
+      odoIn: t.odo ? String(t.odo) : '',
+      litresIn: t.litres ? String(t.litres) : '',
+    };
   return {
     title: 'Edit expense',
     sub: 'Originally ' + longDate(t.date),
@@ -28,12 +45,25 @@ export function txSheet(p: string[]): SheetView {
   if (!t) return { title: 'Expense', body: '<div class="hint">This expense was deleted.</div>' };
   const m = methodOf(t);
   const rec = t.recurringId ? S.recurring.find(r => r.id === t.recurringId) : null;
+  // A fill's mileage is the leg it starts: the km driven on its fuel until the next odometer reading.
+  const leg = t.odo ? fuelTrack(t.vehicleId).legs.find(l => l.from.id === t.id) : undefined;
+  const row = (k: string, v: string) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`;
+  const fuelRows =
+    (t.vehicleId && vehName(t.vehicleId) ? row('Vehicle', vehName(t.vehicleId)) : '') +
+    (t.odo ? row('Odometer', num1(t.odo) + ' km') : '') +
+    (t.litres ? row('Litres', num1(t.litres) + ' L · ' + money(t.amount / t.litres) + ' a litre') : '') +
+    (leg
+      ? row('Mileage', kmpl(leg.kmpl) + ' · ' + num1(leg.km) + ' km on ' + num1(leg.litres) + ' L') +
+        row('Cost per km', money(leg.cost / leg.km))
+      : t.odo
+        ? row('Mileage', 'Shows after the next fill with an odometer reading')
+        : '');
   return {
     title: 'Expense',
     sub: longDate(t.date) + (t.time ? ' at ' + fmtTime(t.time) : ''),
     body: `<div class="tx-detail"><div class="tx-amt">${esc(money(t.amount))}</div>
       <div class="tx-cat"><span class="dot" style="background:${catColor(t.category)}"></span>${esc(t.category)}${t.recurringId ? '<span class="tag">auto</span>' : ''}</div>
-      <dl class="kv-list"><div><dt>Payment</dt><dd>${esc(METHOD_LABEL[m])}</dd></div>${m !== 'cash' ? `<div><dt>${m === 'card' ? 'Card' : 'Bank'}</dt><dd>${esc(acctName(t.accountId))}</dd></div>` : ''}<div><dt>Day</dt><dd>${esc(DAYS[parseDate(t.date).getDay()])}</dd></div><div><dt>Date</dt><dd>${esc(midDate(t.date))}</dd></div><div><dt>Time</dt><dd>${t.time ? esc(fmtTime(t.time)) : 'Not recorded'}</dd></div>${t.note ? `<div><dt>Note</dt><dd>${esc(t.note)}</dd></div>` : ''}${t.recurringId ? `<div><dt>Added by</dt><dd>${rec ? 'Recurring: ' + esc(recurLabel(rec)) : 'A recurring expense (since deleted)'}</dd></div>` : ''}</dl>
+      <dl class="kv-list"><div><dt>Payment</dt><dd>${esc(METHOD_LABEL[m])}</dd></div>${m !== 'cash' ? `<div><dt>${m === 'card' ? 'Card' : 'Bank'}</dt><dd>${esc(acctName(t.accountId))}</dd></div>` : ''}<div><dt>Day</dt><dd>${esc(DAYS[parseDate(t.date).getDay()])}</dd></div><div><dt>Date</dt><dd>${esc(midDate(t.date))}</dd></div><div><dt>Time</dt><dd>${t.time ? esc(fmtTime(t.time)) : 'Not recorded'}</dd></div>${fuelRows}${t.note ? `<div><dt>Note</dt><dd>${esc(t.note)}</dd></div>` : ''}${t.recurringId ? `<div><dt>Added by</dt><dd>${rec ? 'Recurring: ' + esc(recurLabel(rec)) : 'A recurring expense (since deleted)'}</dd></div>` : ''}</dl>
       <button type="button" class="btn-primary" data-detail="edit|${t.id}">Edit</button>
       <div class="two"><button type="button" data-detail="day|${t.date}">All of that day</button><button type="button" data-detail="cat|${t.date.slice(0, 7)}|${esc(t.category)}">${esc(t.category)} that month</button></div>
       <button type="button" class="btn-danger" data-del-tx="${t.id}">Delete this expense</button></div>`,
@@ -75,6 +105,14 @@ export function saveEdit() {
   t.date = st.date;
   t.time = /^\d{2}:\d{2}$/.test(st.time) ? st.time : '';
   t.note = String(st.note || '').trim();
+  if (t.vehicleId) {
+    const odo = Math.round(posNum(st.odoIn) * 10) / 10,
+      litres = Math.round(posNum(st.litresIn) * 100) / 100;
+    if (odo) t.odo = odo;
+    else delete t.odo;
+    if (litres) t.litres = litres;
+    else delete t.litres;
+  }
   save();
   remember(acct(t.accountId));
   closeSheet();

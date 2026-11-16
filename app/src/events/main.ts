@@ -6,7 +6,7 @@ import { clearErrors, problemReport } from '../lib/errors';
 import { FUEL, isMethod } from '../data/model';
 import { S, plainOf, save, snapshots } from '../data/storage';
 import { acct, initials } from '../queries/ledger';
-import { fuel, form, hf, isCalcTarget, isHistSort, isScope, ui } from '../ui/state';
+import { fuel, form, hf, isCalcTarget, isScope, ui } from '../ui/state';
 import { toast } from '../ui/toast';
 import { applyTheme, go, render, slideMain } from '../ui/render';
 import { notifySupported, setAlerts } from '../ui/notify';
@@ -16,6 +16,9 @@ import {
   applySuggestion,
   fuelBtnLabel,
   fuelHint,
+  mileageHint,
+  pickFuelMethod,
+  pickVehicle,
   refreshFuel,
   refreshPay,
   refreshSuggest,
@@ -32,16 +35,17 @@ import { exportPDF } from '../reports/pdf';
 
 type ButtonHandler = (value: string, b: HTMLButtonElement) => void;
 
-/** Open or close the Fuel card on the Add screen; opening selects the Fuel category. */
+function refreshMileage() {
+  const m = el('#fuel-kmpl');
+  if (m) m.textContent = mileageHint();
+}
+/** Open or close the Fuel card on the Add screen; while it is open it stands in for the manual form. */
 function toggleFuel(open: boolean) {
   ui.fuelOpen = open;
   if (!ui.fuelOpen) resetFuel();
-  if (ui.fuelOpen) {
-    if (!S.categories.includes(FUEL)) {
-      S.categories.push(FUEL);
-      save();
-    }
-    form.category = FUEL;
+  else if (!S.categories.includes(FUEL)) {
+    S.categories.push(FUEL);
+    save();
   }
   render(false);
   if (ui.fuelOpen) {
@@ -79,13 +83,28 @@ const clicksByData: [string, ButtonHandler][] = [
   ],
   ['fuelClose', () => toggleFuel(false)],
   [
+    'fuelMileage',
+    () => {
+      fuel.mileage = !fuel.mileage;
+      refreshFuel();
+      const i = el(fuel.mileage ? '#fuel-odo' : '#fuel-amount');
+      if (i) i.focus();
+    },
+  ],
+  [
     'veh',
     v => {
-      fuel.vehicleId = v;
-      fuel.accountId = '';
-      fuel.amount = '';
-      ui.fuelAddingVeh = false;
+      pickVehicle(v);
       refreshFuel();
+    },
+  ],
+  [
+    'fuelMethod',
+    v => {
+      if (v === 'cash' || v === 'upi' || v === 'card') pickFuelMethod(v);
+      refreshFuel();
+      const i = el('#fuel-amount');
+      if (i) i.focus();
     },
   ],
   [
@@ -359,6 +378,15 @@ const inputsById: Record<string, (t: HTMLInputElement) => void> = {
       h = el('#fuel-hint');
     if (b) b.textContent = fuelBtnLabel();
     if (h) h.textContent = fuelHint();
+    refreshMileage();
+  },
+  'fuel-odo': t => {
+    fuel.odo = t.value;
+    refreshMileage();
+  },
+  'fuel-litres': t => {
+    fuel.litres = t.value;
+    refreshMileage();
   },
   'f-note': t => {
     form.note = t.value;
@@ -387,18 +415,6 @@ const changesById: Record<string, (t: HTMLInputElement) => void> = {
   },
   'h-month': t => {
     ui.histMonth = +t.value;
-    refreshHist();
-  },
-  'h-cat': t => {
-    hf.cat = t.value;
-    refreshHist();
-  },
-  'h-method': t => {
-    hf.method = isMethod(t.value) ? t.value : '';
-    refreshHist();
-  },
-  'h-sort': t => {
-    hf.sort = isHistSort(t.value) ? t.value : 'new';
     refreshHist();
   },
   'import-file': t => {
@@ -457,6 +473,8 @@ const enterById: Record<string, (t: HTMLElement) => void> = {
   'f-amount': () => saveTx(),
   'budget-amt': () => el('#budget-add').click(),
   'fuel-amount': () => saveFuel(),
+  'fuel-odo': () => saveFuel(),
+  'fuel-litres': () => saveFuel(),
   'veh-name': () => addVehicle(),
 };
 

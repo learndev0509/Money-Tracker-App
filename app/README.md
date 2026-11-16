@@ -196,7 +196,7 @@ that changes it, on purpose:
   category, account and biggest spends; `queries/compare.ts` holds the month series and the movers
   the Trends sheet also uses; anything with `data-period` moves the Dashboard to that month, and the
   category and account sheets accept a year key through `txInPeriod()`;
-- History's Month dropdown has All months (`ui.histMonth === 0`), listing the year as a card per month;
+- History opens on the current year with All months (`ui.histMonth === 0`, a card per month); the Category, Paid with and Sort choices live in the `hfilter` and `hsort` sheets (`screens/sheets/hist.ts`) behind the Filter, Sort and Clear buttons;
 - the app addresses any phone: `isAndroid()`, `isInstalled()`, `needsInstall()` and
   `bioName()`/`bioTitle()` in `lib/constants.ts`, `ui/install.ts` for Chrome's `beforeinstallprompt`,
   and per-phone wording for the install steps, the biometric unlock and the notification state;

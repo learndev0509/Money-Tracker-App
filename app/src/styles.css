@@ -227,7 +227,11 @@ select.sm{min-height:34px;padding:4px 28px 4px 10px;font-size:13px;width:auto;bo
 .hsel{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .hsel label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted);font-weight:500;min-width:0}
 .hsel select{min-height:40px;padding:6px 30px 6px 10px;font-size:14px;border-radius:12px;width:100%;color:var(--ink);text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
-.hsel select.on{border-color:var(--accent);background-color:var(--accent-soft);color:var(--accent)}
+.htools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.htools button{min-height:40px;padding:6px 8px;font-size:13px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;min-width:0}
+.htools button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.htools button:disabled{opacity:.4;cursor:default}
+.htools svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 input.sm{min-height:36px;padding:6px 10px;font-size:15px;font-family:var(--mono);text-align:right;width:120px}
 textarea{min-height:120px;font-family:var(--mono);font-size:13px}
 input[type=search]::-webkit-search-decoration,input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none}

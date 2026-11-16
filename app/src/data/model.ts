@@ -25,6 +25,10 @@ export interface Tx {
   note: string;
   recurringId: string;
   vehicleId: string;
+  /** Optional, fuel fills only: the odometer reading in km at the fill, for mileage. */
+  odo?: number;
+  /** Optional, fuel fills only: the litres put in. */
+  litres?: number;
 }
 export interface Income {
   id: string;
@@ -163,7 +167,7 @@ export function migrate(d: Raw): Ledger {
       const accountId = t.accountId || '';
       let method = t.method;
       if (!METHODS.includes(method)) method = accountId === 'cash' ? 'cash' : typeOf(accountId);
-      return {
+      const tx: Tx = {
         id: t.id || uid(),
         amount: Math.round((+t.amount || 0) * 100) / 100,
         category: String(t.category || 'Other'),
@@ -175,6 +179,12 @@ export function migrate(d: Raw): Ledger {
         recurringId: t.recurringId || '',
         vehicleId: t.vehicleId || '',
       };
+      // Mileage readings exist only on the fills that have them, so older backups stay byte-identical.
+      const odo = Math.round((+t.odo || 0) * 10) / 10,
+        litres = Math.round((+t.litres || 0) * 100) / 100;
+      if (odo > 0) tx.odo = odo;
+      if (litres > 0) tx.litres = litres;
+      return tx;
     });
   d.cashIn = Array.isArray(d.cashIn)
     ? d.cashIn

@@ -77,13 +77,16 @@ test('the UPI row opens the bank filtered to UPI and the expense sheet labels UP
 
 test('the History payment filter narrows to UPI rows', async () => {
   await app.tab('history');
-  await app.select('#h-method', 'upi');
+  await app.click('#h-filter');
+  await app.click('#sheet .chip[data-hf-method="upi"]');
+  await app.click('#sheet button[data-close]');
   const body = page().locator('#hist-body');
   await expect(body).toContainText('2 expenses · filtered');
   await expect(body).toContainText('Swiggy');
   await expect(body).not.toContainText('Electricity');
   await expect(body).toContainText('UPI');
-  await app.click('#hist-filters [data-hf-clear]');
+  await app.click('#h-clear');
+  await expect(page().locator('#h-clear')).toBeDisabled();
 });
 
 test('a recurring expense can be on UPI and keeps the remembered bank', async () => {

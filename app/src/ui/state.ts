@@ -21,6 +21,9 @@ export interface Draft {
   lastApplied?: string;
   recurringId?: string;
   vehicleId?: string;
+  /** Odometer and litres of a fuel fill, as typed. */
+  odoIn?: string;
+  litresIn?: string;
 }
 /** The minimum the shared pay block needs from any draft or form. */
 export interface PayState {
@@ -34,8 +37,8 @@ export const ui = {
   /** What the Dashboard shows: the month in `period`, or that month's whole year. */
   scope: 'month' as Scope,
   histYear: +today().slice(0, 4),
-  /** 1–12, or 0 for the whole year ("All months" in the Month dropdown). */
-  histMonth: +today().slice(5, 7),
+  /** 1-12, or 0 for the whole year ("All months" in the Month dropdown, the default). */
+  histMonth: 0,
   histQuery: '',
   /** A delete awaiting its Yes/No, as 'kind:id'. */
   pending: null as string | null,
@@ -64,6 +67,13 @@ export const HSORT = {
   high: 'Amount: high to low',
   low: 'Amount: low to high',
 };
+/** The same four, short enough for the Sort button on the History screen. */
+export const HSORT_SHORT: Record<HistSort, string> = {
+  new: 'Sort',
+  old: 'Oldest',
+  high: 'High to low',
+  low: 'Low to high',
+};
 export type HistSort = keyof typeof HSORT;
 export const isHistSort = (x: unknown): x is HistSort => typeof x === 'string' && x in HSORT;
 export type CalcTarget = 'form' | 'fuel' | 'sheet';
@@ -78,7 +88,16 @@ export const histSorter = <T extends Dated & { amount: number }>(): ((a: T, b: T
         ? (a, b) => a.amount - b.amount || sortTx(a, b)
         : sortTx;
 /** The Fuel card's draft. `method` exists only so the shared pay block can treat it like any other draft. */
-export const fuel = { vehicleId: '', accountId: '', amount: '', method: 'card' as Method };
+export const fuel = {
+  vehicleId: '',
+  accountId: '',
+  amount: '',
+  method: 'card' as Method,
+  /** Whether the optional odometer and litres fields are showing. */
+  mileage: false,
+  odo: '',
+  litres: '',
+};
 export const form = {
   amount: '',
   category: '',

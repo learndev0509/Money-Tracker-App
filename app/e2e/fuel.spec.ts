@@ -29,18 +29,22 @@ test('the fuel card is hidden by default behind a Fuel button', async () => {
   await expect(page().locator('#cat-chips .chip.on')).toHaveAttribute('data-cat', 'Food');
 });
 
-test('the Fuel button opens the card first on Add, asks for a vehicle and selects the Fuel category', async () => {
+test('the Fuel button opens the card first on Add, asks for a vehicle and stands in for the manual form', async () => {
   await toggle().click();
   await expect(card().locator('#veh-name')).toBeVisible();
   await expect(page().locator('#main .view > :nth-child(2)')).toHaveId('fuel-card');
   await expect(toggle()).toHaveClass(/\bon\b/);
-  await expect(page().locator('#cat-chips .chip.on')).toHaveAttribute('data-cat', 'Fuel');
+  // a fill is only ever a Fuel expense, so the amount, category, pay and note fields are out of the way
+  await expect(page().locator('#f-amount, #cat-chips, #pay-block, #f-note, #save-tx')).toHaveCount(0);
+  await expect(app.recent).toBeVisible();
 });
 
-test('the close button hides the card', async () => {
+test('the close button hides the card and brings the manual form back', async () => {
   await card().locator('[data-fuel-close]').click();
   await expect(card()).toHaveCount(0);
   await expect(toggle()).not.toHaveClass(/\bon\b/);
+  await expect(page().locator('#f-amount')).toBeVisible();
+  await expect(page().locator('#cat-chips .chip.on')).toHaveAttribute('data-cat', 'Food');
 });
 
 test('a vehicle is added with Enter and selected; without a card the button asks for one', async () => {
@@ -100,6 +104,51 @@ test('switching vehicle restores its own last card and keeps the amount empty', 
   await expect(cardOn()).toHaveText('HDFC Bank Regalia Gold');
 });
 
+test('a fill can be paid in cash', async () => {
+  await expect(card().locator('[data-fuel-method="card"]')).toHaveClass(/\bon\b/);
+  await card().locator('[data-fuel-method="cash"]').click();
+  await expect(card().locator('.chip[data-fuel-acct], [data-open-pick]')).toHaveCount(0);
+  await expect(saveBtn()).toHaveText(/^Log fuel · Swift · Cash$/);
+  await expect(page().locator('#fuel-hint')).toHaveText('Comes off the cash in hand.');
+  await amount().fill('150');
+  await saveBtn().click();
+  await app.expectToast(/Fuel ₹150 · Swift · Cash/);
+  const t = (await app.data()).tx.at(-1);
+  expect(t).toMatchObject({ category: 'Fuel', method: 'cash', accountId: 'cash', amount: 150 });
+  await expect(app.recent).toContainText('Cash');
+});
+
+test('or by UPI from a bank chosen in the directory', async () => {
+  await card().locator('[data-fuel-method="upi"]').click();
+  await expect(card()).toContainText('Choose the bank for UPI…');
+  await expect(saveBtn()).toHaveText(/^Log fuel · Swift$/);
+  await card().locator('[data-open-pick="bank"]').click();
+  await app.pick('hdfc bank', 'HDFC Bank');
+  await expect(app.sheet).toBeHidden();
+  await expect(card().locator('.chip[data-fuel-acct].on .t')).toHaveText('HDFC Bank');
+  await expect(saveBtn()).toHaveText(/^Log fuel · Swift · UPI · HDFC Bank$/);
+  await amount().fill('700');
+  await saveBtn().click();
+  const d = await app.data();
+  const bank = d.accounts.find((a: any) => a.name === 'HDFC Bank');
+  expect(bank.type).toBe('bank');
+  expect(d.tx.at(-1)).toMatchObject({ category: 'Fuel', method: 'upi', accountId: bank.id, amount: 700 });
+  await expect(app.recent).toContainText('UPI · HDFC Bank');
+});
+
+test('back on Card the remembered card is selected again, and each vehicle keeps its own way of paying', async () => {
+  await card().locator('[data-fuel-method="card"]').click();
+  await expect(cardOn()).toHaveText('HDFC Bank Regalia Gold');
+  await card().locator('.chip[data-veh]:has-text("Activa")').click();
+  await expect(cardOn()).toHaveText('American Express Platinum Travel');
+  await card().locator('.chip[data-veh]:has-text("Swift")').click();
+  // Swift's last fill was by UPI, so UPI and its bank come back
+  await expect(card().locator('[data-fuel-method="upi"]')).toHaveClass(/\bon\b/);
+  await expect(card().locator('.chip[data-fuel-acct].on .t')).toHaveText('HDFC Bank');
+  await card().locator('[data-fuel-method="card"]').click();
+  await expect(cardOn()).toHaveText('HDFC Bank Regalia Gold');
+});
+
 test('closing the card clears the typed amount and the vehicle box', async () => {
   await amount().fill('123');
   await card().locator('[data-veh-new]').click();
@@ -118,6 +167,9 @@ test('fuel stays open across screens and a statement day shows the bill on the c
   await expect(app.main).toContainText('this bill so far');
   await app.add();
   await expect(card()).toBeVisible();
+  // reopened on Swift, whose last fill was by UPI; this one goes on a card
+  await expect(card().locator('[data-fuel-method="upi"]')).toHaveClass(/\bon\b/);
+  await card().locator('[data-fuel-method="card"]').click();
   await card().locator(`.chip[data-fuel-acct="${amex}"]`).click();
   await amount().fill('2000');
   await expect(card()).toContainText(/American Express Platinum Travel\s*bill so far ₹300/);
@@ -133,14 +185,14 @@ test('the Month screen has the Fuel card with totals, the fill map and per-vehic
   const m = await app.text('#main');
   expect(m).toMatch(/Fuel/);
   expect(m).toMatch(/Filled on 1 of \d+ days/);
-  expect(m.replace(/\s+/g, '')).toMatch(/Fills2/);
-  expect(m).toMatch(/₹2,300/);
+  expect(m.replace(/\s+/g, '')).toMatch(/Fills4/);
+  expect(m).toMatch(/₹3,150/);
   await expect(page().locator('.fdays .fd.on.today')).toHaveCount(1);
   const now = new Date();
   await expect(page().locator('.fdays .fd')).toHaveCount(new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
   expect(m).toMatch(/Swift/);
   expect(m).toMatch(/Activa/);
-  expect(m).toMatch(/1 fill · ₹2,000 each/);
+  expect(m).toMatch(/3 fills · ₹950 each/);
   expect(m).toMatch(/American Express Platinum Travel · fuel is ₹300 of this bill/);
 });
 
@@ -156,7 +208,7 @@ test('the vehicle sheet lists the fills', async () => {
 test('removing a vehicle keeps its fills', async () => {
   await app.tab('settings');
   await app.click('[data-del-veh]');
-  await app.expectStored(d => d.vehicles.length === 1 && d.tx.length === 2, 'one vehicle left, both fills kept');
+  await app.expectStored(d => d.vehicles.length === 1 && d.tx.length === 4, 'one vehicle left, all four fills kept');
 });
 
 test('no horizontal scroll and no page errors', async () => {

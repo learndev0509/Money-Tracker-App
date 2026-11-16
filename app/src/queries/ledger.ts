@@ -28,6 +28,60 @@ export const isFuel = (t: Tx) => t.category === FUEL;
 export const fuelIn = (k: string) => txIn(k).filter(isFuel);
 export const lastFuel = (vid?: string) =>
   S.tx.filter(t => isFuel(t) && (!vid || t.vehicleId === vid)).sort(sortTx)[0] || null;
+/** A stretch a vehicle drove between two odometer readings, on the fuel put in since the first. */
+export interface FuelLeg {
+  from: Tx;
+  to: Tx;
+  km: number;
+  litres: number;
+  cost: number;
+  kmpl: number;
+}
+/** The stretch still being driven: the latest odometer reading and the fuel put in since. */
+export interface OpenLeg {
+  from: Tx;
+  litres: number;
+  cost: number;
+  /** False when a fill since the reading has no litres, so the fuel used is unknown. */
+  complete: boolean;
+}
+/** Km driven on an open leg if the odometer now reads `odo`; 0 when it cannot be worked out. */
+export const legKm = (o: OpenLeg, odo: number) =>
+  o.complete && o.litres > 0 && odo > (o.from.odo || 0) ? Math.round((odo - (o.from.odo || 0)) * 10) / 10 : 0;
+/**
+ * Mileage of a vehicle. A fill with an odometer reading starts a leg; the next fill with a reading
+ * ends it, and the mileage is the km between the two readings over the litres put in at the first
+ * (plus any fills in between). A leg with a fill of unknown litres, or readings that go backwards,
+ * has no mileage.
+ */
+export function fuelTrack(vid: string): { legs: FuelLeg[]; open: OpenLeg | null } {
+  const legs: FuelLeg[] = [];
+  let open: OpenLeg | null = null;
+  const fills = S.tx.filter(t => isFuel(t) && t.vehicleId === vid).sort((a, b) => sortTx(b, a));
+  for (const t of fills) {
+    if (t.odo) {
+      const km = open ? legKm(open, t.odo) : 0;
+      if (open && km)
+        legs.push({ from: open.from, to: t, km, litres: open.litres, cost: open.cost, kmpl: km / open.litres });
+      open = { from: t, litres: 0, cost: 0, complete: true };
+    }
+    if (open) {
+      open.cost += t.amount;
+      if (t.litres) open.litres += t.litres;
+      else open.complete = false;
+    }
+  }
+  return { legs, open };
+}
+/** Km per litre over several legs together: total km over total litres, or 0 for none. */
+export const avgKmpl = (legs: FuelLeg[]) => {
+  const l = legs.reduce((s, x) => s + x.litres, 0);
+  return l ? legs.reduce((s, x) => s + x.km, 0) / l : 0;
+};
+/** 8 km/L, 17.4 km/L. */
+export const kmpl = (n: number) => num1(n) + ' km/L';
+/** A count with at most one decimal and Indian grouping: 5,080 or 10.5. */
+export const num1 = (n: number) => (Math.round(n * 10) / 10).toLocaleString('en-IN', { maximumFractionDigits: 1 });
 export const vehName = (id: string) => {
   const v = S.vehicles.find(x => x.id === id);
   return v ? v.name : '';

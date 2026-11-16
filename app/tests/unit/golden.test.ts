@@ -58,6 +58,8 @@ const SHEETS = [
   'privacy|app',
   'terms|app',
   'install|how',
+  'hfilter',
+  'hsort',
 ];
 
 function resetUi() {
@@ -66,7 +68,7 @@ function resetUi() {
     period: thisMonth(),
     scope: 'month',
     histYear: +today().slice(0, 4),
-    histMonth: +today().slice(5, 7),
+    histMonth: 0,
     histQuery: '',
     pending: null,
     sheetStack: [],
@@ -98,7 +100,7 @@ function resetUi() {
     date: '',
     time: '',
   });
-  Object.assign(fuel, { vehicleId: '', accountId: '', amount: '' });
+  Object.assign(fuel, { vehicleId: '', accountId: '', amount: '', method: 'card' });
   Object.assign(hf, { method: '', cat: '', sort: 'new' });
 }
 
@@ -139,8 +141,19 @@ describe('screens', () => {
   });
   it('add with the fuel card open', async () => {
     ui.fuelOpen = true;
-    form.category = 'Fuel';
     await expect(rAdd()).toMatchFileSnapshot(golden('add-fuel.html'));
+  });
+  it('add with the fuel card on cash', async () => {
+    ui.fuelOpen = true;
+    fuel.vehicleId = 'v1';
+    fuel.method = 'cash';
+    await expect(rAdd()).toMatchFileSnapshot(golden('add-fuel-cash.html'));
+  });
+  it('add with the fuel card on UPI', async () => {
+    ui.fuelOpen = true;
+    fuel.vehicleId = 'v1';
+    fuel.method = 'upi';
+    await expect(rAdd()).toMatchFileSnapshot(golden('add-fuel-upi.html'));
   });
   it('add with a card chosen, a note being typed and backdating on', async () => {
     setMethodOn(form, 'online');
@@ -173,9 +186,9 @@ describe('screens', () => {
     ui.histMonth = 7;
     await expect(rHist()).toMatchFileSnapshot(golden('history-oldest-empty.html'));
   });
-  it('history with the Month dropdown on All months: the whole year, one card per month', async () => {
-    ui.histMonth = 0;
-    await expect(rHist()).toMatchFileSnapshot(golden('history-all-months.html'));
+  it('history with one month chosen in the Month dropdown', async () => {
+    ui.histMonth = 10;
+    await expect(rHist()).toMatchFileSnapshot(golden('history-one-month.html'));
   });
   it('settings', async () => {
     await expect(rSettings()).toMatchFileSnapshot(golden('settings.html'));

@@ -1,13 +1,11 @@
-import { HistSort } from '../ui/state';
 import { Income, Tx } from '../data/model';
 import { S } from '../data/storage';
 import { longDate, money, monthLabel, today } from '../lib/dates';
-import { HSORT, hf, histSorter, ui } from '../ui/state';
+import { HSORT, HSORT_SHORT, hf, histSorter, ui } from '../ui/state';
 import { METHOD_LABEL, groupBy, methodOf, payLabel, sum, txIn, txInYear } from '../queries/ledger';
 import { MONTHS, el, esc, pad } from '../lib/constants';
-import { METHODS } from '../data/model';
 import { ADD_BTN } from '../ui/render';
-import { SEARCH_SVG } from '../lib/icons';
+import { ICON, SEARCH_SVG } from '../lib/icons';
 import { dayGroups, incRow, txRow } from '../ui/shared';
 /* ---------- HISTORY ---------- */
 export const histYears = () =>
@@ -23,17 +21,21 @@ export const histYears = () =>
 export function histFilter<T extends Tx | Income>(list: T[]) {
   return list.filter(t => (!hf.method || methodOf(t) === hf.method) && (!hf.cat || t.category === hf.cat));
 }
+/** How many Category / Paid with filters are set, for the Filter button and the sheet. */
+export const histFilterCount = () => (hf.cat ? 1 : 0) + (hf.method ? 1 : 0);
+/** Whether the Clear button has anything to clear: a filter, a sort off newest first, or a search. */
+export const histDirty = () => !!(hf.cat || hf.method || hf.sort !== 'new' || ui.histQuery.trim());
+/** The Year and Month dropdowns, then the Filter, Sort and Clear buttons (the first two open sheets). */
 export function filterChipsHTML() {
   const ys = histYears(),
     curY = +today().slice(0, 4),
     curM = +today().slice(5, 7);
   if (!ys.includes(ui.histYear)) ui.histYear = ys[0];
   if (ui.histYear === curY && ui.histMonth > curM) ui.histMonth = curM;
-  const cats = [...new Set(S.tx.map(t => t.category).concat(S.categories))].sort();
   const opt = (v: string | number, label: string | number, sel: boolean, extra?: string) =>
     `<option value="${esc(v)}" ${sel ? 'selected' : ''} ${extra || ''}>${esc(label)}</option>`;
-  const sel = (id: string, label: string, on: boolean, opts: string) =>
-    `<label>${label}<select id="${id}" class="${on ? 'on' : ''}" aria-label="${label}">${opts}</select></label>`;
+  const sel = (id: string, label: string, opts: string) =>
+    `<label>${label}<select id="${id}" aria-label="${label}">${opts}</select></label>`;
   const months =
     opt(0, 'All months', ui.histMonth === 0) +
     Array.from({ length: 12 }, (_, i) => {
@@ -46,14 +48,21 @@ export function filterChipsHTML() {
         ui.histYear === curY && m > curM ? 'disabled' : '',
       );
     }).join('');
+  const nf = histFilterCount();
   return `<div class="hsel">
-    ${sel('h-year', 'Year', false, ys.map(y => opt(y, y, y === ui.histYear)).join(''))}
-    ${sel('h-month', 'Month', false, months)}
-    ${sel('h-cat', 'Category', !!hf.cat, opt('', 'All categories', !hf.cat) + cats.map(c => opt(c, c, hf.cat === c)).join(''))}
-    ${sel('h-method', 'Paid with', !!hf.method, opt('', 'All payments', !hf.method) + METHODS.map(m => opt(m, m === 'cash' ? 'Cash' : METHOD_LABEL[m].replace('Online · ', ''), hf.method === m)).join(''))}
-    ${sel('h-sort', 'Sort', hf.sort !== 'new', (Object.keys(HSORT) as HistSort[]).map(k => opt(k, HSORT[k], hf.sort === k)).join(''))}
-    <label>&nbsp;<button type="button" class="btn-sm" style="min-height:40px" data-hf-clear ${hf.cat || hf.method || hf.sort !== 'new' || ui.histQuery.trim() ? '' : 'disabled style="opacity:.4;min-height:40px"'}>Clear filters</button></label>
+    ${sel('h-year', 'Year', ys.map(y => opt(y, y, y === ui.histYear)).join(''))}
+    ${sel('h-month', 'Month', months)}
+  </div>
+  <div class="htools">
+    <button type="button" id="h-filter" class="${nf ? 'on' : ''}" data-detail="hfilter" aria-label="Filter${nf ? ', ' + nf + ' set' : ''}">${ICON.filter}Filter${nf ? ' · ' + nf : ''}</button>
+    <button type="button" id="h-sort" class="${hf.sort !== 'new' ? 'on' : ''}" data-detail="hsort" aria-label="Sort: ${esc(HSORT[hf.sort])}">${ICON.sort}${esc(HSORT_SHORT[hf.sort])}</button>
+    <button type="button" id="h-clear" data-hf-clear aria-label="Clear filters, sort and search" ${histDirty() ? '' : 'disabled'}>${ICON.brush}Clear</button>
   </div>`;
+}
+/** What the Filter sheet's button will show: the expenses the current filters leave in the list or the search. */
+export function histCount() {
+  if (ui.histQuery.trim()) return searchHits().length;
+  return histFilter(ui.histMonth ? txIn(ui.histYear + '-' + pad(ui.histMonth)) : txInYear(ui.histYear)).length;
 }
 export function rHist() {
   return `<div class="view"><div class="topbar"><div><h1>History</h1><span class="sub">${S.tx.length} expense${S.tx.length === 1 ? '' : 's'} all time</span></div>${ADD_BTN}</div>
@@ -97,7 +106,7 @@ export function monthListHTML() {
       : `<section class="card">${dayGroups(items, hf.sort === 'old')}</section>`;
   return `<div class="view">
     <div class="kv" style="padding:0 2px"><span>${esc(label)} · ${items.length} expense${items.length === 1 ? '' : 's'}${filtered ? ' · filtered' : ''} · ${esc(HSORT[hf.sort].toLowerCase())}</span><b>${esc(money(sum(items)))}</b></div>
-    ${items.length ? list : `<div class="card empty"><strong>${all.length ? 'Nothing matches the filters in ' + esc(label) : 'Nothing spent in ' + esc(label)}</strong><span>${all.length ? 'Change Category or Paid with above to see every expense that ' + (year ? 'year' : 'month') + '.' : 'Pick another month or year above.'}</span>${all.length ? '<button type="button" class="btn-sm" data-hf-clear>Clear filters</button>' : ''}</div>`}
+    ${items.length ? list : `<div class="card empty"><strong>${all.length ? 'Nothing matches the filters in ' + esc(label) : 'Nothing spent in ' + esc(label)}</strong><span>${all.length ? 'Change the filter above to see every expense that ' + (year ? 'year' : 'month') + '.' : 'Pick another month or year above.'}</span>${all.length ? '<button type="button" class="btn-sm" data-hf-clear>Clear filters</button>' : ''}</div>`}
   </div>`;
 }
 /** The total of a search result: what was spent, and what came in when any income matched. */
@@ -108,9 +117,9 @@ function searchTotal(items: (Tx | Income)[]) {
   const plus = got ? `<span style="color:var(--good)">+${esc(money(got))}</span>` : '';
   return spent || !got ? esc(money(spent)) + (plus ? ' ' + plus : '') : plus;
 }
-export function searchHTML() {
+/** Every expense and income across all time that matches the search box and the filters, in the chosen order. */
+function searchHits(): (Tx | Income)[] {
   const q = ui.histQuery.trim().toLowerCase();
-  const inc = new Set<Tx | Income>(S.income);
   const matches = (t: Tx | Income) =>
     t.category.toLowerCase().includes(q) ||
     t.note.toLowerCase().includes(q) ||
@@ -119,7 +128,11 @@ export function searchHTML() {
     String(t.amount).includes(q.replace(/,/g, '')) ||
     monthLabel(t.date.slice(0, 7)).toLowerCase().includes(q) ||
     longDate(t.date).toLowerCase().includes(q);
-  const hits: (Tx | Income)[] = [...histFilter(S.tx), ...histFilter(S.income)].filter(matches).sort(histSorter());
+  return [...histFilter(S.tx), ...histFilter(S.income)].filter(matches).sort(histSorter());
+}
+export function searchHTML() {
+  const inc = new Set<Tx | Income>(S.income);
+  const hits = searchHits();
   const row = (t: Tx | Income) => (inc.has(t) ? incRow(t as Income) : txRow(t as Tx));
   const what = [
     '“' + ui.histQuery.trim() + '”',

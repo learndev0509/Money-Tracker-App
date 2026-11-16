@@ -15,7 +15,11 @@ import {
   acctName,
   billSoFar,
   byValue,
+  avgKmpl,
   fuelIn,
+  fuelTrack,
+  kmpl,
+  num1,
   groupBy,
   methodOf,
   sortTx,
@@ -44,6 +48,17 @@ export function vehSheet(p: string[]): SheetView {
       .filter(t => t.vehicleId === p[2])
       .sort(sortTx),
     total = sum(items);
+  const all = fuelTrack(p[2]).legs,
+    legs = all.filter(l => l.to.date.slice(0, 7) === k),
+    km = legs.reduce((s, l) => s + l.km, 0);
+  const mileage = all.length
+    ? `<h3>Mileage</h3>${tiles([
+        ['This month', legs.length ? kmpl(avgKmpl(legs)) : '—'],
+        ['All time', kmpl(avgKmpl(all))],
+        ['Km driven', legs.length ? num1(km) : '—'],
+        ['Per km', legs.length ? money(legs.reduce((s, l) => s + l.cost, 0) / km) : '—'],
+      ])}`
+    : '';
   return {
     title: (vehName(p[2]) || 'No vehicle') + ' · fuel',
     sub: monthLabel(k),
@@ -54,7 +69,7 @@ export function vehSheet(p: string[]): SheetView {
           ['Per fill', compact(total / items.length)],
           ['Biggest', compact(items.slice().sort((a, b) => b.amount - a.amount)[0].amount)],
         ])}
-      <h3>Paid with</h3><div class="list">${acctRows(items, total, 'cash', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'bank', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'upi', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'card', id => 'acct|' + k + '|' + id)}</div>
+      ${mileage}<h3>Paid with</h3><div class="list">${acctRows(items, total, 'cash', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'bank', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'upi', id => 'acct|' + k + '|' + id)}${acctRows(items, total, 'card', id => 'acct|' + k + '|' + id)}</div>
       <h3>Fills</h3><div class="list">${items.map(t => txRow(t)).join('')}</div>`
       : '<div class="empty"><span>No fills this month.</span></div>',
   };

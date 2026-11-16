@@ -15,6 +15,7 @@ import { pickSheet } from './pick';
 import { pinSheet } from './pin';
 import { recurSheet } from './recurring';
 import { trendSheet } from './trend';
+import { histFilterSheet, histSortSheet } from './hist';
 export * from './forms';
 export * from './pick';
 export * from './expense';
@@ -26,6 +27,7 @@ export * from './trend';
 export * from './legal';
 export * from './pin';
 export * from './period';
+export * from './hist';
 
 export interface SheetView {
   title: string;
@@ -55,6 +57,8 @@ const SHEETS: Record<string, (p: string[]) => SheetView> = {
   cat: p => catAcctSheet(p, 'cat'),
   acct: p => catAcctSheet(p, 'acct'),
   month: monthSheet,
+  hfilter: histFilterSheet,
+  hsort: histSortSheet,
 };
 export function sheetContent(detail: string): SheetView {
   const p = detail.split('|');

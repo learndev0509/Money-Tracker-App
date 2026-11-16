@@ -1,15 +1,16 @@
 <div class="view"><div class="topbar"><div><h1>History</h1><span class="sub">7 expenses all time</span></div><button type="button" class="btn-add" id="add-btn" data-go="add" aria-label="Add expense"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
     <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="hist-search" type="search" placeholder="Search notes, categories, banks, cards, amounts" value="" autocomplete="off"></div>
     <div id="hist-filters"><div class="hsel">
-    <label>Year<select id="h-year" class="" aria-label="Year"><option value="2026" selected >2026</option></select></label>
-    <label>Month<select id="h-month" class="" aria-label="Month"><option value="0"  >All months</option><option value="1"  >January</option><option value="2"  >February</option><option value="3"  >March</option><option value="4"  >April</option><option value="5"  >May</option><option value="6"  >June</option><option value="7"  >July</option><option value="8"  >August</option><option value="9"  >September · 1</option><option value="10" selected >October · 6</option><option value="11"  disabled>November</option><option value="12"  disabled>December</option></select></label>
-    <label>Category<select id="h-cat" class="" aria-label="Category"><option value="" selected >All categories</option><option value="Bills"  >Bills</option><option value="Entertainment"  >Entertainment</option><option value="Food"  >Food</option><option value="Fuel"  >Fuel</option><option value="Groceries"  >Groceries</option><option value="Health"  >Health</option><option value="Kids"  >Kids</option><option value="Other"  >Other</option><option value="Rent"  >Rent</option><option value="Shopping"  >Shopping</option><option value="Transport"  >Transport</option></select></label>
-    <label>Paid with<select id="h-method" class="on" aria-label="Paid with"><option value=""  >All payments</option><option value="cash"  >Cash</option><option value="bank"  >Bank account</option><option value="upi"  >UPI</option><option value="card" selected >Credit card</option></select></label>
-    <label>Sort<select id="h-sort" class="on" aria-label="Sort"><option value="new"  >Newest first</option><option value="old"  >Oldest first</option><option value="high" selected >Amount: high to low</option><option value="low"  >Amount: low to high</option></select></label>
-    <label>&nbsp;<button type="button" class="btn-sm" style="min-height:40px" data-hf-clear >Clear filters</button></label>
+    <label>Year<select id="h-year" aria-label="Year"><option value="2026" selected >2026</option></select></label>
+    <label>Month<select id="h-month" aria-label="Month"><option value="0" selected >All months</option><option value="1"  >January</option><option value="2"  >February</option><option value="3"  >March</option><option value="4"  >April</option><option value="5"  >May</option><option value="6"  >June</option><option value="7"  >July</option><option value="8"  >August</option><option value="9"  >September · 1</option><option value="10"  >October · 6</option><option value="11"  disabled>November</option><option value="12"  disabled>December</option></select></label>
+  </div>
+  <div class="htools">
+    <button type="button" id="h-filter" class="on" data-detail="hfilter" aria-label="Filter, 1 set"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>Filter · 1</button>
+    <button type="button" id="h-sort" class="on" data-detail="hsort" aria-label="Sort: Amount: high to low"><svg viewBox="0 0 24 24"><path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3"/></svg>High to low</button>
+    <button type="button" id="h-clear" data-hf-clear aria-label="Clear filters, sort and search" ><svg viewBox="0 0 24 24"><path d="M20 3l-9 9M9.5 12.5l2 2M8 14c-2 0-3 1.5-3.5 3.5S3.5 20 2.5 21c3 0 6-.5 7.5-2a2.5 2.5 0 0 0-2-5z"/></svg>Clear</button>
   </div></div>
     <div id="hist-body"><div class="view">
-    <div class="kv" style="padding:0 2px"><span>October 2026 · 2 expenses · filtered · amount: high to low</span><b>₹6,499</b></div>
+    <div class="kv" style="padding:0 2px"><span>2026 · 2 expenses · filtered · amount: high to low</span><b>₹6,499</b></div>
     <section class="card"><div class="list"><button type="button" class="txrow" data-detail="tx|t2">
     <span class="ci" style="--cc:var(--c5)"><svg viewBox="0 0 24 24"><path d="M6 8h12l1 13H5zM9 8V6a3 3 0 0 1 6 0v2"/></svg></span>
     <span class="name">Shopping<span class="note"> · Shoes</span><span class="small">Mon 5 Oct · 9:30 pm · HDFC Bank Regalia Gold</span></span>

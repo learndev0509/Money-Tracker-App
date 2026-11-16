@@ -4,7 +4,7 @@ import { form, fuel, ui } from '../../ui/state';
 import { el, esc } from '../../lib/constants';
 import { money } from '../../lib/dates';
 import { toast } from '../../ui/toast';
-import { fuelBtnLabel, fuelHint } from '../add';
+import { fuelBtnLabel, fuelHint, mileageHint } from '../add';
 /* Calculator sheet over an amount field. */
 export function calcSheet(_p: string[]): SheetView {
   const r = calcEval(ui.calcExpr),
@@ -81,6 +81,8 @@ export function calcUse() {
       h = el('#fuel-hint');
     if (b) b.textContent = fuelBtnLabel();
     if (h) h.textContent = fuelHint();
+    const m = el('#fuel-kmpl');
+    if (m) m.textContent = mileageHint();
     return;
   }
   ui.sheetStack.pop();

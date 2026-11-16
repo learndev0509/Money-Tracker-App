@@ -8,7 +8,10 @@ import {
   billSoFar,
   byValue,
   catColor,
+  avgKmpl,
   fuelIn,
+  fuelTrack,
+  kmpl,
   groupBy,
   incIn,
   methodOf,
@@ -228,6 +231,11 @@ export function incomeSection(k: string) {
   return `<section class="card"><div class="card-head"><h2>Money in</h2><span class="sub">${esc(money(sum(inc)))} received</span></div>
     <div class="kv" style="margin-bottom:8px">${leftLine(k, sum(inc)).html}</div><div class="list">${inc.map(incRow).join('')}</div></section>`;
 }
+/** ' · 8 km/L' for a vehicle over the legs that ended in a month, or nothing when it is not tracked. */
+export function monthKmpl(vid: string, k: string) {
+  const a = avgKmpl(fuelTrack(vid).legs.filter(l => l.to.date.slice(0, 7) === k));
+  return a ? ' · ' + kmpl(a) : '';
+}
 export function fuelSection(k: string) {
   const fills = fuelIn(k);
   if (!fills.length) return '';
@@ -248,7 +256,7 @@ export function fuelSection(k: string) {
         detail: 'veh|' + k + '|' + g.key,
         color: catColor(FUEL),
         name: vehName(g.key) || 'No vehicle',
-        sub: g.n + ' fill' + (g.n === 1 ? '' : 's') + ' · ' + money(g.v / g.n) + ' each',
+        sub: g.n + ' fill' + (g.n === 1 ? '' : 's') + ' · ' + money(g.v / g.n) + ' each' + monthKmpl(g.key, k),
         amount: g.v,
         pct: pct(g.v, total),
       }),

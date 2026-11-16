@@ -2,14 +2,19 @@
 export const CALC_BTN = (ctx: string) =>
   `<button type="button" class="calc-btn" data-calc="${ctx}" aria-label="Calculator"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg></button>`;
 export const SEARCH_SVG = '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
-export const ICON: Record<'cash' | 'online' | 'bank' | 'card' | 'fuel' | 'upi', string> = {
-  cash: '<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>',
-  online: '<svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
-  bank: '<svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg>',
-  card: '<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>',
-  fuel: '<svg viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h14M7 7h6M15 9h2l3 3v7a1.5 1.5 0 0 1-3 0v-5h-2"/></svg>',
-  upi: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7v-3"/></svg>',
-};
+export const ICON: Record<'cash' | 'online' | 'bank' | 'card' | 'fuel' | 'upi' | 'filter' | 'sort' | 'brush', string> =
+  {
+    cash: '<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>',
+    online: '<svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
+    bank: '<svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg>',
+    card: '<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>',
+    fuel: '<svg viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h14M7 7h6M15 9h2l3 3v7a1.5 1.5 0 0 1-3 0v-5h-2"/></svg>',
+    upi: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7v-3"/></svg>',
+    filter: '<svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>',
+    sort: '<svg viewBox="0 0 24 24"><path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3"/></svg>',
+    brush:
+      '<svg viewBox="0 0 24 24"><path d="M20 3l-9 9M9.5 12.5l2 2M8 14c-2 0-3 1.5-3.5 3.5S3.5 20 2.5 21c3 0 6-.5 7.5-2a2.5 2.5 0 0 0-2-5z"/></svg>',
+  };
 export const CAT_ICON: Record<string, string> = {
   food: '<path d="M4 11h16a8 8 0 0 1-16 0zM9 5v3M12 4v4M15 5v3"/>',
   groceries: '<path d="M3 9h18l-2 11H5zM8 9a4 4 0 0 1 8 0"/>',

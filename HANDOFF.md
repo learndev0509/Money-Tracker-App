@@ -92,7 +92,7 @@ Rules that matter:
 - **PIN = encryption, not a gate.** The old FNV hash of a 4-digit PIN was readable from the JSON. A 4-digit key is still brute-forceable offline; the UI says so.
 - **Budgets are compared at render time**, so changing one re-colours past months. Warnings are computed at save time by comparing the category's month total before and after the save.
 - **UPI is a method, not an account type.** A UPI expense points at a bank account; bank rows total bank+UPI, and a separate UPI section shows the UPI slice.
-- **Fuel quick-fill is card-only** by choice (that is how fuel is paid here). Cash/UPI fuel goes through the normal form and lands in the same Fuel card.
+- **Fuel quick-fill takes Cash, UPI or Card** (`fuel.method`); while the card is open it replaces the manual form, since a fill is always a Fuel expense. Each vehicle remembers its own last way of paying (`pickVehicle`), and switching the method brings back the account that vehicle last used that way (`pickFuelMethod`).
 - **History is a ledger, Dashboard owns all graphs.** Charts were removed from History on request.
 - **PDF is written by hand** (no library) so it works offline and fetches nothing: PDF 1.4, Helvetica/Helvetica-Bold base fonts with a width table for alignment, the ₹ drawn as a vector path (base fonts lack it), Indian digit grouping, A4 pagination with repeated header. Latin text only.
 - **Fonts ship with the app** since 1.2.5, subsetted with fontTools to Basic Latin, Latin-1, common punctuation and ₹, as WOFF (brotli was unavailable for WOFF2; the difference is ~15 KB). Plex Sans 400/500/600 came from the owner's Google Fonts download; Plex Mono 500/600 are stand-ins built from Plex Mono Regular and Bold — swap in the real Medium/SemiBold files by re-running the subset if the owner supplies them. With this, the page makes no request after load; the privacy sheet states exactly that.
@@ -114,12 +114,12 @@ node features.test.js && node welcome.test.js && node round2.test.js && node rou
 | --- | --- |
 | features | edit, budgets (add row, warnings, banner), statement day, recurring, backup reminder, PIN set/change/remove/forgot, migration incl. palette and stale `pin` |
 | welcome | first run, greeting, profile, old-key migration |
-| round2 | note autocomplete, undo, cash in hand, History dropdowns and sort, open-on-Add, reduced motion |
+| round2 | note autocomplete, undo, cash in hand, History year/month dropdowns with the Filter, Sort and Clear buttons and their sheets, open-on-Add, reduced motion |
 | round3 | UPI end to end, income end to end incl. recurring salary |
 | safety | snapshots and restore, undoable wipe, encryption lifecycle incl. the pre-1.2.6 `enc:1` upgrade, erase, iOS install card |
 | ui | glyphs, save morph, hero spark, sheets, theme, nav, calculator, Trends, version chip, PDF export, local fonts / zero external requests, privacy and terms, share-to-Files backup |
 | secure | served from a fake `https://money.test` origin via Playwright routing with a CDP virtual authenticator (`hasPrf`): Face ID enrol/unlock, PIN fallback, PIN change keeps the Face wrapper, fail-closed without the passkey, service-worker precache over https, budget notifications and badge via stubbed `Notification`/`setAppBadge` |
-| fuel | vehicles, fuel toggle/close/clear, cards and bill hints, Dashboard Fuel card |
+| fuel | vehicles, fuel toggle/close/clear (the card stands in for the manual form), cash / UPI / card fills, bill hints, Dashboard Fuel card |
 
 261 checks at 1.2.6. The suites wait fixed milliseconds in places; `features` uses `toastHas()` for the slow (PBKDF2) PIN paths. A lone intermittent failure that passes on re-run is harness timing, not the app.
 

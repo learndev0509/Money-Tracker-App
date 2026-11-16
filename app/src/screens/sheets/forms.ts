@@ -17,7 +17,12 @@ export function editFormHTML(st: Draft, ctx: string) {
         ? `<label class="f">Day of the month<select id="e-day">${Array.from({ length: 31 }, (_, i) => `<option value="${i + 1}" ${st.day === i + 1 ? 'selected' : ''}>${ordinal(i + 1)}${i + 1 > 28 ? ' (or the last day of shorter months)' : ''}</option>`).join('')}</select></label>`
         : `<div class="two"><label class="f">Date<input id="e-date" type="date" value="${esc(st.date)}" max="${today()}"></label><label class="f">Time<input id="e-time" type="time" value="${esc(st.time)}"></label></div>`
     }
-    <label class="f">Note${isRec ? ' (shown as the name)' : ' (optional)'}<input id="e-note" type="text" value="${esc(st.note)}" placeholder="${isInc ? 'e.g. Salary, SIP payout' : isRec ? 'e.g. Rent, Netflix, SIP' : 'e.g. Swiggy, petrol, chai'}" maxlength="60"></label>
+    ${
+      ctx === 'edit' && st.vehicleId
+        ? `<div class="two"><label class="f">Odometer (km, optional)<input id="e-odo" type="text" inputmode="decimal" value="${esc(st.odoIn || '')}" maxlength="9" autocomplete="off"></label><label class="f">Litres (optional)<input id="e-litres" type="text" inputmode="decimal" value="${esc(st.litresIn || '')}" maxlength="7" autocomplete="off"></label></div>
+    `
+        : ''
+    }<label class="f">Note${isRec ? ' (shown as the name)' : ' (optional)'}<input id="e-note" type="text" value="${esc(st.note)}" placeholder="${isInc ? 'e.g. Salary, SIP payout' : isRec ? 'e.g. Rent, Netflix, SIP' : 'e.g. Swiggy, petrol, chai'}" maxlength="60"></label>
     ${isRec && !st.id ? `<label class="f">Start<select id="e-since"><option value="this" ${st.since === 'this' ? 'selected' : ''}>This month (${esc(monthLabel(thisMonth()))})${Math.min(st.day ?? 1, daysInMonth(thisMonth())) <= +today().slice(8, 10) ? ' · added right away' : ''}</option><option value="next" ${st.since === 'next' ? 'selected' : ''}>Next month (${esc(monthLabel(addMonths(thisMonth(), 1)))})</option></select></label>` : ''}
     ${isRec && st.id ? `<label class="f">Status<select id="e-active"><option value="1" ${st.active ? 'selected' : ''}>Active · adds every month</option><option value="0" ${st.active ? '' : 'selected'}>Paused</option></select></label>` : ''}
     <button type="button" class="btn-primary" data-save-${ctx}>${isRec ? (st.id ? 'Save changes' : isInc ? 'Add recurring income' : 'Add recurring expense') : 'Save changes'}</button>

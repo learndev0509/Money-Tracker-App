@@ -5,7 +5,7 @@ import { INCOME_SOURCES, isMethod } from '../data/model';
 import { S, save } from '../data/storage';
 import { acct } from '../queries/ledger';
 import { cashBalance } from '../queries/cash';
-import { ui, type Draft } from '../ui/state';
+import { hf, isHistSort, ui, type Draft } from '../ui/state';
 import { toast } from '../ui/toast';
 import { go, render } from '../ui/render';
 import { promptInstall } from '../ui/install';
@@ -27,6 +27,7 @@ import {
   sheetState,
 } from '../screens/sheets';
 import { savePin } from '../screens/security';
+import { refreshHist } from '../screens/history';
 
 type ButtonHandler = (value: string, b: HTMLButtonElement, st: Draft | null) => void;
 
@@ -161,6 +162,40 @@ const clicksByData: [string, ButtonHandler][] = [
       go('dashboard');
     },
   ],
+  // The History Filter and Sort sheets: each tap applies to the list behind the sheet straight away.
+  [
+    'hfCat',
+    v => {
+      hf.cat = v;
+      renderSheet();
+      refreshHist();
+    },
+  ],
+  [
+    'hfMethod',
+    v => {
+      hf.method = isMethod(v) ? v : '';
+      renderSheet();
+      refreshHist();
+    },
+  ],
+  [
+    'hfReset',
+    () => {
+      hf.cat = '';
+      hf.method = '';
+      renderSheet();
+      refreshHist();
+    },
+  ],
+  [
+    'hfSort',
+    v => {
+      hf.sort = isHistSort(v) ? v : 'new';
+      closeSheet();
+      refreshHist();
+    },
+  ],
 ];
 
 export function bindSheet() {
@@ -219,6 +254,8 @@ export function bindSheet() {
     else if (t.id === 'e-note') st.note = t.value;
     else if (t.id === 'e-date') st.date = t.value;
     else if (t.id === 'e-time') st.time = t.value;
+    else if (t.id === 'e-odo') st.odoIn = t.value;
+    else if (t.id === 'e-litres') st.litresIn = t.value;
   });
   sheet.addEventListener('change', e => {
     const t = e.target as HTMLInputElement,

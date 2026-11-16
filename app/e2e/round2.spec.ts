@@ -118,7 +118,7 @@ test('the cash history lists withdrawal, adjust and spends', async () => {
   await app.shot('05-dashboard');
 });
 
-test('History has no charts, five dropdowns defaulting to now, and lists newest first', async () => {
+test('History has no charts, opens on this year with All months, and lists newest first', async () => {
   await app.tab('history');
   await expect(histBody().locator('.chart, .hero, .prow')).toHaveCount(0);
   const now = new Date();
@@ -126,10 +126,22 @@ test('History has no charts, five dropdowns defaulting to now, and lists newest 
     await page()
       .locator('#hist-filters select')
       .evaluateAll(l => l.map(s => s.id).join(',')),
-  ).toBe('h-year,h-month,h-cat,h-method,h-sort');
+  ).toBe('h-year,h-month');
   await expect(page().locator('#h-year')).toHaveValue(String(now.getFullYear()));
-  await expect(page().locator('#h-month')).toHaveValue(String(now.getMonth() + 1));
+  await expect(page().locator('#h-month')).toHaveValue('0');
   await expect(page().locator('#h-month option').first()).toHaveText('All months');
+  // the whole year, as a card per month, with this month's expenses in it
+  await expect(histBody()).toContainText(now.getFullYear() + ' · 4 expenses · newest first');
+  await expect(histBody().locator('.monthhead')).toHaveCount(1);
+  // Filter, Sort and Clear buttons below the dropdowns, none active yet
+  expect(
+    await page()
+      .locator('#hist-filters .htools button')
+      .evaluateAll(l => l.map(b => b.id + (b.classList.contains('on') ? ':on' : '')).join(',')),
+  ).toBe('h-filter,h-sort,h-clear');
+  await expect(page().locator('#h-filter')).toHaveText('Filter');
+  await expect(page().locator('#h-sort')).toHaveText('Sort');
+  await expect(page().locator('#h-clear')).toBeDisabled();
   expect(
     await page()
       .locator('#h-month option')
@@ -142,18 +154,6 @@ test('History has no charts, five dropdowns defaulting to now, and lists newest 
       .locator('#h-year option')
       .evaluateAll((l: HTMLOptionElement[]) => l.every(o => +o.value <= new Date().getFullYear())),
   ).toBe(true);
-  const cats = await page()
-    .locator('#h-cat option')
-    .evaluateAll((l: HTMLOptionElement[]) => l.map(o => o.value));
-  expect(cats[0]).toBe('');
-  expect(cats).toContain('Food');
-  expect(cats).toContain('Fuel');
-  expect(cats).toContain('Other');
-  expect(
-    await page()
-      .locator('#h-method option')
-      .evaluateAll((l: HTMLOptionElement[]) => l.map(o => o.value).join(',')),
-  ).toBe(',cash,bank,upi,card');
   const order = await page()
     .locator('#hist-body .txrow .note')
     .evaluateAll(l => l.map(e => e.textContent!.trim()));
@@ -161,31 +161,66 @@ test('History has no charts, five dropdowns defaulting to now, and lists newest 
   expect(order[order.length - 1]).toBe('· Swiggy');
 });
 
-test('the payment and category dropdowns narrow the month list, clear resets', async () => {
-  await app.select('#h-method', 'cash');
+test('the Filter button opens a sheet of category and payment chips', async () => {
+  await app.click('#h-filter');
+  await expect(app.sheetHead).toContainText('Filter');
+  const cats = await page()
+    .locator('#sheet .chip[data-hf-cat]')
+    .evaluateAll(l => l.map(c => (c as HTMLElement).dataset.hfCat));
+  expect(cats[0]).toBe('');
+  expect(cats).toContain('Food');
+  expect(cats).toContain('Fuel');
+  expect(cats).toContain('Other');
+  expect(
+    await page()
+      .locator('#sheet .chip[data-hf-method]')
+      .evaluateAll(l => l.map(c => (c as HTMLElement).dataset.hfMethod).join(',')),
+  ).toBe(',cash,bank,upi,card');
+  await expect(app.sheet.locator('.chip[data-hf-cat=""]')).toHaveClass(/\bon\b/);
+  await expect(app.sheet.locator('.chip[data-hf-method=""]')).toHaveClass(/\bon\b/);
+  await expect(app.sheet.locator('[data-close].btn-primary')).toHaveText('Show 4 expenses');
+});
+
+test('each chip narrows the list behind the sheet at once; Show closes it and Clear resets', async () => {
+  await app.click('#sheet .chip[data-hf-method="cash"]');
   await expect(histBody()).toContainText('Chai');
   await expect(histBody()).toContainText('Auto');
   await expect(histBody()).not.toContainText('Swiggy');
   await expect(histBody()).toContainText('2 expenses · filtered');
-  await expect(page().locator('#h-method')).toHaveClass(/\bon\b/);
-  await app.select('#h-cat', 'Food');
+  await expect(app.sheet.locator('[data-close].btn-primary')).toHaveText('Show 2 expenses');
+  await expect(page().locator('#h-filter')).toHaveText('Filter · 1');
+  await expect(page().locator('#h-filter')).toHaveClass(/\bon\b/);
+  await app.click('#sheet .chip[data-hf-cat="Food"]');
   await expect(histBody()).toContainText('Chai');
   await expect(histBody()).not.toContainText('Auto');
   await expect(histBody()).toContainText('1 expense · filtered');
-  await app.click('#hist-filters [data-hf-clear]');
-  await expect(page().locator('#h-cat')).toHaveValue('');
-  await expect(page().locator('#h-method')).toHaveValue('');
+  await expect(page().locator('#h-filter')).toHaveText('Filter · 2');
+  await expect(app.sheetHead).toContainText('2 filters set');
+  await app.click('#sheet [data-close].btn-primary');
+  await expect(app.sheet).toBeHidden();
+  await expect(page().locator('#h-clear')).toBeEnabled();
+  await app.click('#h-clear');
+  await expect(page().locator('#h-filter')).toHaveText('Filter');
+  await expect(page().locator('#h-filter')).not.toHaveClass(/\bon\b/);
+  await expect(page().locator('#h-clear')).toBeDisabled();
   await expect(histBody()).toContainText('4 expenses');
 });
 
-test('sorting by amount is a flat list, oldest first reverses', async () => {
-  await app.select('#h-sort', 'high');
+test('the Sort button opens a sheet: amount is a flat list, oldest first reverses, and a tap closes it', async () => {
+  await app.click('#h-sort');
+  await expect(app.sheetHead).toContainText('Sort');
+  await expect(app.sheet.locator('[data-hf-sort="new"] .tick')).toHaveCount(1);
+  await app.click('#sheet [data-hf-sort="high"]');
+  await expect(app.sheet).toBeHidden();
   const amts = await page()
     .locator('#hist-body .txrow .amt')
     .evaluateAll(l => l.map(e => +e.textContent!.replace(/[^\d.]/g, '')));
   expect(amts.join(',')).toBe('220,180,100,60');
   await expect(histBody().locator('.dayhead')).toHaveCount(0);
-  await app.select('#h-sort', 'old');
+  await expect(page().locator('#h-sort')).toHaveText('High to low');
+  await expect(page().locator('#h-sort')).toHaveClass(/\bon\b/);
+  await app.click('#h-sort');
+  await app.click('#sheet [data-hf-sort="old"]');
   expect(
     (
       await page()
@@ -193,7 +228,10 @@ test('sorting by amount is a flat list, oldest first reverses', async () => {
         .evaluateAll(l => l.map(e => e.textContent!.trim()))
     )[0],
   ).toBe('· Swiggy');
-  await app.select('#h-sort', 'new');
+  await expect(page().locator('#h-sort')).toHaveText('Oldest');
+  await app.click('#h-clear');
+  await expect(page().locator('#h-sort')).toHaveText('Sort');
+  await expect(page().locator('#h-sort')).not.toHaveClass(/\bon\b/);
 });
 
 test('a search with no match offers clear, and clear returns to the month list', async () => {
@@ -206,7 +244,7 @@ test('a search with no match offers clear, and clear returns to the month list',
   await expect(page().locator('#h-month')).toHaveCount(1);
 });
 
-test('a past year appears in the dropdown and opens on December; a future-dated entry adds no year', async () => {
+test('a past year appears in the dropdown and stays on All months; a future-dated entry adds no year', async () => {
   await app.patch(d => {
     d.tx.push(
       {
@@ -241,7 +279,9 @@ test('a past year appears in the dropdown and opens on December; a future-dated 
       .evaluateAll((l: HTMLOptionElement[]) => l.map(o => o.value).join(',')),
   ).toBe(new Date().getFullYear() + ',2025');
   await app.select('#h-year', '2025');
-  await expect(page().locator('#h-month')).toHaveValue('12');
+  await expect(page().locator('#h-month')).toHaveValue('0');
+  await expect(histBody()).toContainText('2025 · 1 expense');
+  await expect(histBody().locator('.monthhead')).toHaveText(/March 2025 · 1/);
   expect(
     await page()
       .locator('#h-month option')
@@ -251,11 +291,13 @@ test('a past year appears in the dropdown and opens on December; a future-dated 
   await expect(histBody()).toContainText('March 2025 · 1 expense');
   await expect(histBody()).toContainText('Old one');
   await app.shot('06-history');
-  // "All" lists the whole year as one card per month, and survives a change of year.
+  // a month chosen in one year moves to the latest month of the next; All months survives a change of year
+  await app.select('#h-year', String(new Date().getFullYear()));
+  await expect(page().locator('#h-month')).toHaveValue(String(new Date().getMonth() + 1));
   await app.select('#h-month', '0');
   await expect(page().locator('#h-month option:checked')).toHaveText('All months');
-  await expect(histBody()).toContainText('2025 · 1 expense');
-  await expect(histBody().locator('.monthhead')).toHaveText(/March 2025 · 1/);
+  await app.select('#h-year', '2025');
+  await expect(page().locator('#h-month')).toHaveValue('0');
   await expect(histBody()).toContainText('Old one');
   await app.select('#h-year', String(new Date().getFullYear()));
   await expect(page().locator('#h-month')).toHaveValue('0');

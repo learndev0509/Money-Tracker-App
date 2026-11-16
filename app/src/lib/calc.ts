@@ -45,3 +45,8 @@ export const parseAmt = (v: unknown): number => {
   const s = String(v || '');
   return /[+*/×÷%−]|\d-/.test(s) ? calcEval(s) : parseFloat(s.replace(/[^\d.]/g, ''));
 };
+/** A plain positive number as typed (5,080 or 10.5), or 0 for anything else. */
+export const posNum = (s: unknown) => {
+  const n = parseFloat(String(s ?? '').replace(/[,\s]/g, ''));
+  return isFinite(n) && n > 0 ? n : 0;
+};
