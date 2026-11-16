@@ -67,9 +67,14 @@ test('the fields stay open for a tracked vehicle, cleared, with the last reading
   await expect(hint()).toContainText('Last reading 5,000 km on ');
 });
 
-test('an odometer at or below the last reading is refused', async () => {
+test('an odometer at or below the last reading is refused, and so is one that is not a number', async () => {
   await amount().fill('900');
   await litres().fill('9');
+  await odo().fill('abc');
+  await saveBtn().click();
+  await app.expectToast(/The odometer should be a number of km/);
+  await expect(odo()).toBeFocused();
+  expect((await app.data()).tx).toHaveLength(2);
   await odo().fill('4900');
   await expect(hint()).toContainText('The odometer should read more than last time, 5,000 km');
   await saveBtn().click();
@@ -139,6 +144,36 @@ test('the readings survive a reload', async () => {
   const d = await app.data();
   expect(d.tx.filter((t: any) => t.odo).map((t: any) => t.odo)).toEqual([4980, 5080]);
   expect(d.tx.filter((t: any) => t.litres).map((t: any) => t.litres)).toEqual([10, 9, 1]);
+});
+
+test('the edit sheet refuses a reading that is not a number, and a fill moved off Fuel loses its readings', async () => {
+  const id = (await app.data()).tx.find((t: any) => t.odo === 5080).id;
+  await app.page.evaluate(() => window.scrollTo(0, 0));
+  await app.tab('history');
+  await app.click(`[data-detail="tx|${id}"]`);
+  await app.click('#sheet [data-detail^="edit|"]');
+  await app.fill('#e-odo', 'abc');
+  await app.click('#sheet [data-save-edit]');
+  await app.expectToast(/The odometer should be a number of km/);
+  expect((await app.data()).tx.find((t: any) => t.id === id)).toMatchObject({ odo: 5080, litres: 9 });
+  await app.fill('#e-odo', '5080');
+  await app.fill('#e-litres', 'ten');
+  await app.click('#sheet [data-save-edit]');
+  await app.expectToast(/Litres should be a number/);
+  await app.fill('#e-litres', '9');
+  // moved to Food it is no longer a fill, so the vehicle and the readings go with it
+  await app.click('#sheet .chip[data-cat="Food"]');
+  await app.click('#sheet [data-save-edit]');
+  await app.expectToast(/Saved changes/);
+  const t = (await app.data()).tx.find((x: any) => x.id === id);
+  expect(t).toMatchObject({ category: 'Food', vehicleId: '' });
+  expect(t.odo).toBeUndefined();
+  expect(t.litres).toBeUndefined();
+  await app.click(`[data-detail="tx|${id}"]`);
+  const body = (await app.text('#sheet-body')).replace(/\s+/g, ' ');
+  expect(body).not.toContain('Odometer');
+  expect(body).not.toContain('Vehicle');
+  await app.click('#sheet button[data-close]');
 });
 
 test('no horizontal scroll and no page errors', async () => {

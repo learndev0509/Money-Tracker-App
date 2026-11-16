@@ -1,5 +1,6 @@
 import { SheetView, closeSheet } from './index';
 import { S, save } from '../../data/storage';
+import { FUEL } from '../../data/model';
 import { ui } from '../../ui/state';
 import { fmtTime, longDate, midDate, money, parseDate, today } from '../../lib/dates';
 import { editFormHTML } from './forms';
@@ -98,6 +99,21 @@ export function saveEdit() {
     toast('The date cannot be in the future');
     return;
   }
+  // A reading that cannot be read is refused, not quietly dropped from the ledger.
+  const odoIn = String(st.odoIn || '').trim(),
+    litresIn = String(st.litresIn || '').trim(),
+    odo = Math.round(posNum(odoIn) * 10) / 10,
+    litres = Math.round(posNum(litresIn) * 100) / 100;
+  if (st.category === FUEL && t.vehicleId) {
+    if (odoIn && !odo) {
+      toast('The odometer should be a number of km, like 5080');
+      return;
+    }
+    if (litresIn && !litres) {
+      toast('Litres should be a number, like 10');
+      return;
+    }
+  }
   t.amount = Math.round(amt * 100) / 100;
   t.category = st.category;
   t.method = st.method;
@@ -105,9 +121,12 @@ export function saveEdit() {
   t.date = st.date;
   t.time = /^\d{2}:\d{2}$/.test(st.time) ? st.time : '';
   t.note = String(st.note || '').trim();
-  if (t.vehicleId) {
-    const odo = Math.round(posNum(st.odoIn) * 10) / 10,
-      litres = Math.round(posNum(st.litresIn) * 100) / 100;
+  if (st.category !== FUEL) {
+    // no longer a fill: a vehicle and readings left behind would skew that vehicle's mileage
+    t.vehicleId = '';
+    delete t.odo;
+    delete t.litres;
+  } else if (t.vehicleId) {
     if (odo) t.odo = odo;
     else delete t.odo;
     if (litres) t.litres = litres;

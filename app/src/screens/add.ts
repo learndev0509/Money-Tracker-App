@@ -332,6 +332,22 @@ export function saveFuel() {
     litres = fuel.mileage ? Math.round(posNum(fuel.litres) * 100) / 100 : 0,
     open = fuelTrack(v.id).open,
     km = open && odo ? legKm(open, odo) : 0;
+  // something typed that is not a number is refused, not quietly left out of the fill
+  const bad = !fuel.mileage
+    ? ''
+    : fuel.odo.trim() && !odo
+      ? '#fuel-odo'
+      : fuel.litres.trim() && !litres
+        ? '#fuel-litres'
+        : '';
+  if (bad) {
+    toast(
+      bad === '#fuel-odo' ? 'The odometer should be a number of km, like 5080' : 'Litres should be a number, like 10',
+    );
+    const i = el(bad);
+    if (i) i.focus();
+    return;
+  }
   if (odo && open && odo <= (open.from.odo || 0)) {
     toast('The odometer should read more than last time, ' + num1(open.from.odo || 0) + ' km');
     const i = el('#fuel-odo');
