@@ -1,6 +1,6 @@
 # Money tracker — handoff
 
-Version 1.2.9 · 16 November 2026 · Zestera
+Version 1.2.10 · 16 November 2026 · Zestera
 
 This is the engineering handoff for the Money tracker web app: what it is, what was built and why, how it is put together, how to change it, and what is still open. The user-facing description of every feature is in `Money tracker - Features and How it works.md`; this file does not repeat it.
 
@@ -25,6 +25,7 @@ A personal expense tracker for a phone, iPhone or Android, run as a Home Screen 
 | 1.2.7 | 2 Nov | First release from the module build (`app/`): income in History search, "new version is ready" reload toast, only the saved row animates, `₹1.2Cr` |
 | 1.2.8 | 16 Nov | Dashboard Month \| Year switch with a Month by month comparison card and a whole-year view; All months in History; Android install card (Chrome steps, Install button) and phone-neutral wording (biometric unlock is "fingerprint or face" off iPhone); CSV export removed; service worker claims on first install; re-enrolling Face ID replaces the passkey |
 | 1.2.9 | 16 Nov | New palette: beige, sage and sky blue in light, warm olive charcoal in dark; icons re-rendered from the recoloured SVG; releases renumbered (see below) |
+| 1.2.10 | 16 Nov | Fuel card replaces the manual form while open, takes Cash / UPI / Card with per-vehicle memory, and optional odometer and litres for mileage (`tx.odo`, `tx.litres`, `fuelTrack()`); History opens on the current year with All months and gets Filter, Sort and Clear buttons with sheets; recurring entries announced by toast and notification (`meta.recurAlerts`) |
 
 Up to 1.2.6 each version shipped as `money-tracker-<version>.zip`; 1.2.2 and later are what has been on Netlify. From 1.2.7 a release is `app/dist/` (see §12 and `app/README.md`).
 
@@ -163,8 +164,7 @@ On an Android phone (Chrome, from the https URL), not yet run either:
 - The "Zestera" name has not been checked against the trademark register.
 - Face ID enrolment and notifications were verified with Chromium's virtual authenticator and stubbed Notification API, not on an iPhone or an Android phone; see the device checklist. The Android install prompt was verified with a dispatched `beforeinstallprompt`, not with Chrome's real one.
 - PDF: Latin text only; non-Latin notes print as `?`. Embedding a font costs ~100 KB.
-- Fuel: amount only (no litres/odometer, so no mileage).
-- Module build only, not in the root `index.html` (still 1.2.6): income in History search (1.2.7); All months in History, the Dashboard Month | Year switch, the Android install card, phone-neutral wording and the removal of CSV export (1.2.8); the beige, sage and sky palette (1.2.9). Where they live is in §12.
+- Module build only, not in the root `index.html` (still 1.2.6): income in History search (1.2.7); All months in History, the Dashboard Month | Year switch, the Android install card, phone-neutral wording and the removal of CSV export (1.2.8); the beige, sage and sky palette (1.2.9); the stand-alone Fuel card with Cash / UPI and mileage, the History Filter, Sort and Clear buttons and recurring-entry alerts (1.2.10). Where they live is in §12.
 - The root single-file copy is a maintenance burden: two code bases for one app. Replace it on the host with `app/dist/` and retire it.
 - Budget warnings are in-app only; a web app on iOS cannot post notifications without a server.
 - No sync, no multi-device; backups are manual (plus the 3-day automatic copies on the same phone).
@@ -187,3 +187,5 @@ The same app, split into TypeScript modules and built with Vite, lives in `app/`
 - **Backup.** CSV export removed (`csvText`/`exportCSV` gone); JSON backup and the PDF report remain.
 - **Palette.** Tokens at the top of `src/styles.css`: light is beige, sage and sky; dark is the same family on olive charcoal, in two identical blocks (system dark and forced dark) that must be edited together. The icons are rendered from `public/favicon.svg`; re-render them when it changes.
 - **Numbering.** Releases after 1.2.0 were renumbered 1.2.1–1.2.9; see §2.
+
+1.2.10 (16 November 2026): the Fuel card stands in for the manual form while open (`ui.fuelOpen` in `screens/add.ts`), with `fuel.method` Cash / UPI / Card (`pickVehicle`, `pickFuelMethod`) and optional `fuel.odo` / `fuel.litres` saved as `tx.odo` / `tx.litres`; `queries/ledger.ts` `fuelTrack()` turns the readings into legs with km/L for the card hint, the Dashboard Fuel card, the vehicle sheet and the expense sheet. History opens with `ui.histMonth === 0`; the Category, Paid with and Sort choices moved into the `hfilter` and `hsort` sheets (`screens/sheets/hist.ts`) behind Filter, Sort and Clear buttons. `applyRecurring()` names each entry it adds in a toast and, when `meta.recurAlerts` is not off, a notification (`ui/notify.ts`).

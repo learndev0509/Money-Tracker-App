@@ -210,6 +210,14 @@ from it (Chromium screenshot of the SVG at 32, 180 and 512 px), with the touch i
 `index.html` and the manifest colours following. Releases were renumbered the same day: what was
 1.3.0 to 1.11.0 is 1.2.1 to 1.2.9; routine releases step the third number from here.
 
+1.2.10 (16 November 2026): the Fuel card replaces the manual form while open and takes Cash, UPI or
+Card (`fuel.method`, `pickVehicle`, `pickFuelMethod` in `screens/add.ts`) with optional odometer and
+litres (`tx.odo`, `tx.litres`; `fuelTrack()` in `queries/ledger.ts` works out the mileage shown on the
+card, the Dashboard, the vehicle sheet and the expense sheet); History opens on the current year with
+All months and its Category, Paid with and Sort choices live in the `hfilter` and `hsort` sheets behind
+Filter, Sort and Clear buttons; recurring entries are announced by toast and notification
+(`meta.recurAlerts`, `ui/notify.ts`).
+
 ## Continuous integration
 
 The repository root holds `.github/workflows/check.yml`: on every push to `main` and every pull
