@@ -83,10 +83,10 @@ test('appearance: dark applies at once and persists, forced light beats a dark p
   await app.click('#theme-seg [data-theme-pick="light"]');
   await page().emulateMedia({ colorScheme: 'dark' });
   expect(await app.theme()).toBe('light');
-  expect(await page().evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(242, 244, 241)');
+  expect(await page().evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(244, 239, 228)'); // the beige light canvas
   await app.click('#theme-seg [data-theme-pick="system"]');
   expect(await app.theme()).toBe('');
-  expect(await page().evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(15, 20, 19)');
+  expect(await page().evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(21, 22, 15)'); // the olive charcoal dark canvas
 });
 
 test('reduced motion skips the save morph and the row slide', async () => {
