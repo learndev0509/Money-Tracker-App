@@ -31,17 +31,19 @@ itself). `npm run e2e -- --update-snapshots` accepts a new look in the visual ba
 ```
 index.html            page markup only (head tags, tab bar, welcome, sheet, lock screen, toast)
 src/main.ts           boot: read storage, pick the first screen, wire events, render or lock
-src/styles.css        the stylesheet, unchanged apart from font paths
+src/styles.css        the stylesheet; the palette tokens sit at the top (light: beige, sage, sky;
+                      dark: olive charcoal, in two identical blocks that must change together)
 src/sw.js             service-worker template; the build fills in the cache name and asset list
 src/lib/              constants, dates and money formatting, the amount calculator, the bank and
                       card directory, SVG icons, the crash log
 src/data/model.ts     the Ledger type, defaults(), migrate()   <- the data contract
 src/data/crypto.ts    AES-GCM, PBKDF2 and HKDF helpers, the in-memory key `vault`, blob layouts
 src/data/storage.ts   the ledger `S`, localStorage read/write queue, snapshots, recode on PIN change
-src/queries/          pure functions over the ledger: month slices, statement cycles, budgets,
-                      cash in hand, recurring entries, note memory
+src/queries/          pure functions over the ledger: month and year slices, statement cycles, budgets,
+                      cash in hand, recurring entries, note memory, month series and movers (compare.ts)
 src/ui/               screen state (`ui`, `form`, `fuel`, `hf`), toast, render loop, notifications,
-                      shared row/section/chart builders, the pay block, the bank/card picker
+                      shared row/section/chart builders, the pay block, the bank/card picker, the
+                      update toast (update.ts) and Chrome's install prompt (install.ts)
 src/screens/          one module per screen (add, dashboard, history, settings), security (PIN and
                       Face ID), lock screen, welcome
 src/screens/sheets/   the sheet stack (index.ts, with the kind → builder registry) and one module per
@@ -184,6 +186,29 @@ that changes it, on purpose:
   service worker calls `skipWaiting()`, so the page sees a `controllerchange`, and the registration is
   re-checked whenever the app comes back to the foreground, because the browser only looks for a new
   `sw.js` on navigation and a phone keeps the app open for days.
+
+## Later releases from this folder
+
+1.2.8 (16 November 2026):
+
+- the Dashboard has a Month | Year switch (`ui.scope`); `screens/dashboard.ts` renders `rMonth()`,
+  the original screen plus a Month by month comparison card, or `rYear()`, the whole year by month,
+  category, account and biggest spends; `queries/compare.ts` holds the month series and the movers
+  the Trends sheet also uses; anything with `data-period` moves the Dashboard to that month, and the
+  category and account sheets accept a year key through `txInPeriod()`;
+- History's Month dropdown has All months (`ui.histMonth === 0`), listing the year as a card per month;
+- the app addresses any phone: `isAndroid()`, `isInstalled()`, `needsInstall()` and
+  `bioName()`/`bioTitle()` in `lib/constants.ts`, `ui/install.ts` for Chrome's `beforeinstallprompt`,
+  and per-phone wording for the install steps, the biometric unlock and the notification state;
+- CSV export removed from Backup; the JSON backup and the PDF report remain;
+- the service worker claims the page on its first install, and re-enrolling Face ID replaces the
+  passkey rather than adding a second one.
+
+1.2.9 (16 November 2026): the palette. Light is beige, sage and sky blue; dark is the same family on a
+warm olive charcoal. `public/favicon.svg` carries the gradient and the three PNG icons are rendered
+from it (Chromium screenshot of the SVG at 32, 180 and 512 px), with the touch icon embedded in
+`index.html` and the manifest colours following. Releases were renumbered the same day: what was
+1.3.0 to 1.11.0 is 1.2.1 to 1.2.9; routine releases step the third number from here.
 
 ## Continuous integration
 

@@ -14,7 +14,9 @@ Files:
   icon-*.png     home-screen icons (the ₹ mark)
   favicon.svg, favicon-32.png   browser-tab icon
   fonts/         IBM Plex Sans and Mono (subsets, OFL) - the app loads nothing from the internet
-  app/           the same app as TypeScript modules built with Vite (npm run build -> app/dist); see app/README.md
+  app/           the current release (1.2.9) as TypeScript modules built with Vite: npm run build -> app/dist,
+                 and upload that folder in place of the root files; see app/README.md. The root files above are
+                 the older single-file copy (1.2.6) and behave the same with the same data.
 
 First open shows the welcome screen and asks for your name; after that the app opens on the Dashboard.
 Expenses, money in (salary, refunds, gifts) and a one-tap Fuel card all live on the Add screen; paid-with covers

@@ -2,6 +2,8 @@
 
 Oct 22, 2026 · @Shreya Sanghavi
 
+> Historical: this is the original approach and design write-up for the build of 23 October 2026 (1.0.0), kept as it was. It still says iPhone, CSV export and a PIN gate; the app has since gone phone-neutral, dropped CSV, encrypts with the PIN and runs on Android too. The current description of every feature is `Money tracker - Features and How it works.md`; the engineering notes are `HANDOFF.md`.
+
 Money tracker (a Zestera app, formerly Rupee Ledger) is a personal expense tracker that runs on your iPhone from the home screen. On first open an animated welcome screen asks only for your name; after that the Month screen greets you by first name with Good morning, afternoon or evening. You type an amount, tap a category, say whether you paid by cash, bank account or credit card, and it is saved with the day, date and time. The Month screen always shows the current month from zero; History keeps every month and year. Budgets, credit-card statement cycles, recurring expenses, CSV export, backup reminders and a PIN lock are built in. Everything lives on the phone itself: there is no account, no server and nothing to sign in to. This document describes the build of 23 October 2026 ([open the app](https://claude.ai/artifact/8MZJADDrLDqAX43VWRrDNX)).
 
 ## Where it runs
