@@ -234,6 +234,10 @@ form's "Adds to … after this" line and `saveCash` refuses zero (`tests/unit/ca
 copy of `meta.theme` under `money-tracker.v1.theme` and a locked start applies it with
 `applyStoredTheme`, since the encrypted ledger cannot be read before unlock (`e2e/locktheme.spec.ts`).
 
+1.2.14 (17 November 2026): Correct total for cash in hand. `cashform|correct` takes the counted amount
+and `saveCorrection` stores the difference from `cashBalance()` as a signed `adjust` entry; the cash
+history shows a negative one as "Correction" (`tests/unit/cash.test.ts`, `e2e/cash.spec.ts`).
+
 ## Continuous integration
 
 The repository root holds `.github/workflows/check.yml`: on every push to `main` and every pull
