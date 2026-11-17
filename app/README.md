@@ -238,6 +238,13 @@ copy of `meta.theme` under `money-tracker.v1.theme` and a locked start applies i
 and `saveCorrection` stores the difference from `cashBalance()` as a signed `adjust` entry; the cash
 history shows a negative one as "Correction" (`tests/unit/cash.test.ts`, `e2e/cash.spec.ts`).
 
+1.2.15 (17 November 2026): performance, no behaviour change. `sortTx` compares the date+time key
+without `localeCompare` and `newest(list, n)` keeps the n newest in one pass; History search caches
+each row's text and its hit list on `saves` (exported by `data/storage.ts`) and the input is debounced;
+`keepSnapshot` reads the stored list only as far as its first `day` and `loadInitial` parses the blob once;
+`cashBalance` sums in one pass and `accountUse()` replaces the per-account scans
+(`tests/unit/fast-paths.test.ts`).
+
 ## Continuous integration
 
 The repository root holds `.github/workflows/check.yml`: on every push to `main` and every pull

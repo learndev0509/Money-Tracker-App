@@ -65,20 +65,22 @@ export function snapshots(): Snapshot[] {
     return [];
   }
 }
-/** The day of the newest automatic copy, so a save after the first of the day does not re-read every copy to find out. */
-let snapDay = '';
-export const forgetSnapshotDay = () => {
-  snapDay = '';
+/**
+ * Whether the newest stored copy is from this day, read off the head of the stored string so a save
+ * after the first of the day does not parse every copy to find out. Every writer puts `day` first.
+ */
+const hasCopyFor = (day: string) => {
+  try {
+    return (localStorage.getItem(SNAP_KEY) || '').startsWith('[{"day":"' + day + '"');
+  } catch (e) {
+    return false;
+  }
 };
 export function keepSnapshot(raw: string, n: number) {
   const day = today();
-  if (snapDay === day) return;
+  if (hasCopyFor(day)) return;
   const list = snapshots();
-  if (list.length && list[0].day === day) {
-    snapDay = day;
-    return;
-  }
-  snapDay = day;
+  if (list.length && list[0].day === day) return;
   list.unshift({ day, raw, n });
   try {
     localStorage.setItem(SNAP_KEY, JSON.stringify(list.slice(0, SNAPS)));

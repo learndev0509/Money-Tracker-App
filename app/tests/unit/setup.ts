@@ -39,8 +39,4 @@ g.window = g.window || {
 };
 g.location = g.location || { hash: '#dashboard', hostname: 'localhost' };
 
-beforeEach(async () => {
-  localStorage.clear();
-  // imported here, after the globals above exist, so the app modules see them when they first load
-  (await import('../../src/data/storage')).forgetSnapshotDay();
-});
+beforeEach(() => localStorage.clear());
